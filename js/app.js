@@ -27,6 +27,8 @@
     await loadScript("js/supabase-config.js");
     await loadScript("js/auth.js");
     await window.Auth.whenReady();
+    await loadScript("js/reviews-api.js");
+    await window.ReviewsApi?.whenReady?.();
   })();
 
   function whenReady() {
@@ -179,7 +181,8 @@
                   <span>▼</span>
                 </button>
                 <div class="dropdown" id="user-dropdown">
-                  <a href="login.html">アカウント設定</a>
+                  <a href="my-reviews.html">投稿した口コミ</a>
+                  ${window.Auth?.isAdmin?.() ? '<a href="admin.html">口コミ審査（運営）</a>' : ""}
                   <hr>
                   <button type="button" id="logout-btn">ログアウト</button>
                 </div>

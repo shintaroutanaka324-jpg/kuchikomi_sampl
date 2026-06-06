@@ -297,10 +297,12 @@ function collectFormData() {
     purchasePeriod: year && month ? `${year}年${monthLabel}頃` : "",
     purchaseProofName: proofInput?.files?.[0]?.name || "未提出",
     ratings: RATING_ITEMS.map((item) => ({
+      key: item.key,
       label: item.label,
       value: Number(document.getElementById(item.key)?.value || 0),
     })),
     bodies: BODY_ITEMS.map((item) => ({
+      id: item.id,
       label: item.label,
       text: document.getElementById(item.id)?.value.trim() || "",
     })),
@@ -390,10 +392,26 @@ function hideConfirmScreen() {
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
-function submitReview() {
-  localStorage.setItem("reviewsUnlocked", "true");
-  App.showToast("口コミを投稿しました！全ての口コミが閲覧可能になりました。");
-  setTimeout(() => (window.location.href = "reviews.html"), 1500);
+async function submitReview() {
+  const submitBtn = document.getElementById("sr-confirm-submit");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "送信中...";
+  }
+
+  try {
+    const data = collectFormData();
+    const proofFile = document.getElementById("purchaseProof")?.files?.[0] || null;
+    await ReviewsApi.submitReview(data, proofFile);
+    App.showToast("口コミを送信しました。運営確認後に公開されます。");
+    setTimeout(() => (window.location.href = "my-reviews.html"), 1200);
+  } catch (err) {
+    App.showToast(err.message || "投稿に失敗しました", "error");
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = "この内容で投稿する";
+    }
+  }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -502,7 +520,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         <a href="reviews.html" class="btn btn-outline-trust btn-lg">キャンセル</a>
       </div>
       <p class="sr-footer-note">
-        投稿された口コミは運営が確認のうえ公開されます。投稿は匿名で行われます。
+        投稿された口コミは運営が確認のうえ公開されます。審査状況は<a href="my-reviews.html">投稿した口コミ</a>から確認できます。投稿は匿名で行われます。
       </p>
     </form>
   `;

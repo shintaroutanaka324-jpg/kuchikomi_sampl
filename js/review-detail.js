@@ -6,7 +6,9 @@ const RADAR_AXES = [
   { key: "recommendation", label: "おすすめ度" },
 ];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await App.whenReady();
+
   const id = App.getQueryParam("id");
   const product = getProductById(id);
   const root = document.getElementById("detail-root");

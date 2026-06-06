@@ -469,8 +469,18 @@ function getProductById(id) {
   return PRODUCTS.find((p) => p.id === id);
 }
 
+let _approvedDbReviews = [];
+
+function setApprovedDbReviews(reviews) {
+  _approvedDbReviews = Array.isArray(reviews) ? reviews : [];
+}
+
 function getReviewsByProductId(productId) {
-  return REVIEWS.filter((r) => r.productId === productId);
+  const staticReviews = REVIEWS.filter((r) => r.productId === productId);
+  const dbReviews = _approvedDbReviews.filter((r) => r.productId === productId);
+  return [...staticReviews, ...dbReviews].sort(
+    (a, b) => new Date(b.date) - new Date(a.date)
+  );
 }
 
 /** 商品（商材）単位の口コミ集計 */

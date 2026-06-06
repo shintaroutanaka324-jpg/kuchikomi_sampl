@@ -41,7 +41,7 @@
     }
     const { data, error } = await client
       .from("profiles")
-      .select("display_name, email")
+      .select("display_name, email, is_admin")
       .eq("id", userId)
       .maybeSingle();
 
@@ -106,10 +106,52 @@
     return client;
   }
 
+  const DUPLICATE_EMAIL_MESSAGE = "このメールアドレスは既に登録されています";
+
+  function isDuplicateSignUpResponse(data) {
+    const user = data?.user;
+    if (!user || data?.session) return false;
+
+    // Supabase 公式: 登録済みメールでは identities が空配列になる
+    if (Array.isArray(user.identities) && user.identities.length === 0) {
+      return true;
+    }
+
+    // メール確認済みアカウントへの再登録
+    if (user.email_confirmed_at) {
+      return true;
+    }
+
+    // 既存ユーザーの created_at が古い（今回の登録操作で作られたものではない）
+    if (user.created_at) {
+      const createdMs = new Date(user.created_at).getTime();
+      if (Number.isFinite(createdMs) && Date.now() - createdMs > 15_000) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  function isDuplicateEmailError(error) {
+    const message = (error?.message || "").toLowerCase();
+    const code = (error?.code || "").toLowerCase();
+    return (
+      code === "user_already_exists" ||
+      code === "email_exists" ||
+      code === "email_address_already_exists" ||
+      message.includes("already registered") ||
+      message.includes("user already registered") ||
+      message.includes("already been registered") ||
+      message.includes("email address is already") ||
+      message.includes("already in use")
+    );
+  }
+
   function mapAuthError(error) {
     const message = error?.message || "エラーが発生しました";
-    if (message.includes("already registered") || message.includes("User already registered")) {
-      return "このメールアドレスは既に登録されています";
+    if (isDuplicateEmailError(error)) {
+      return DUPLICATE_EMAIL_MESSAGE;
     }
     if (message.includes("Invalid login credentials")) {
       return "メールアドレスまたはパスワードが正しくありません";
@@ -129,9 +171,38 @@
     return message;
   }
 
+  async function isEmailRegistered(email) {
+    const normalized = email.trim();
+    if (!normalized) return false;
+
+    const supabase = ensureClient();
+
+    const { data: rpcHit, error: rpcError } = await supabase.rpc("is_email_registered", {
+      check_email: normalized,
+    });
+    if (!rpcError && rpcHit === true) return true;
+
+    const { data: profiles, error: profileError } = await supabase
+      .from("profiles")
+      .select("id")
+      .ilike("email", normalized)
+      .limit(1);
+
+    if (!profileError && profiles?.length > 0) return true;
+
+    return false;
+  }
+
   async function signUp({ email, password, displayName }) {
     const supabase = ensureClient();
+    const trimmedEmail = email.trim();
+
+    if (await isEmailRegistered(trimmedEmail)) {
+      throw new Error(DUPLICATE_EMAIL_MESSAGE);
+    }
+
     const { data, error } = await supabase.auth.signUp({
+      email: trimmedEmail,
       email,
       password,
       options: {
@@ -139,6 +210,10 @@
       },
     });
     if (error) throw new Error(mapAuthError(error));
+
+    if (isDuplicateSignUpResponse(data)) {
+      throw new Error(DUPLICATE_EMAIL_MESSAGE);
+    }
 
     session = data.session;
     if (session?.user) {
@@ -202,6 +277,14 @@
     return profile?.email || session?.user?.email || "";
   }
 
+  function isAdmin() {
+    return profile?.is_admin === true;
+  }
+
+  function getClient() {
+    return client;
+  }
+
   window.Auth = {
     whenReady,
     isConfigured,
@@ -211,9 +294,14 @@
     resetPassword,
     updatePassword,
     isLoggedIn,
+    isAdmin,
+    getClient,
     getUser,
     getUserName,
     getUserEmail,
     mapAuthError,
+    isEmailRegistered,
+    isDuplicateSignUpResponse,
+    DUPLICATE_EMAIL_MESSAGE,
   };
 })();

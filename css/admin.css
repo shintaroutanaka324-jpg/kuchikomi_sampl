@@ -1,0 +1,216 @@
+/* 運営：口コミ審査 */
+
+.admin-page {
+  padding: 2rem 0 4rem;
+}
+
+.admin-header {
+  margin-bottom: 2rem;
+}
+
+.admin-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.35rem;
+}
+
+.admin-header p {
+  color: var(--gray-600);
+  font-size: 0.9375rem;
+}
+
+.admin-tabs {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-tab {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-600);
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.admin-tab:hover {
+  border-color: var(--trust-200);
+  color: var(--trust-700);
+}
+
+.admin-tab.active {
+  color: #fff;
+  background: var(--trust-600);
+  border-color: var(--trust-600);
+}
+
+.admin-empty {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border: 1px dashed var(--gray-200);
+  border-radius: var(--radius-lg);
+}
+
+.admin-card {
+  background: #fff;
+  border: 1px solid var(--gray-100);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.admin-card-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+.admin-card-meta {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+.admin-status {
+  display: inline-block;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  border-radius: 999px;
+}
+
+.admin-status--pending {
+  color: #b45309;
+  background: #fffbeb;
+}
+
+.admin-status--approved {
+  color: var(--trust-700);
+  background: var(--trust-50);
+}
+
+.admin-status--rejected {
+  color: var(--gray-600);
+  background: var(--gray-100);
+}
+
+.admin-section-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--gray-700);
+  margin: 1rem 0 0.5rem;
+}
+
+.admin-text-block {
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  line-height: 1.75;
+  white-space: pre-wrap;
+  background: var(--gray-50);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-ratings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-rating-item {
+  font-size: 0.8125rem;
+  color: var(--gray-600);
+  background: var(--gray-50);
+  padding: 0.5rem 0.65rem;
+  border-radius: 8px;
+}
+
+.admin-rating-item strong {
+  color: var(--gray-900);
+}
+
+.admin-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.admin-field {
+  margin-top: 1rem;
+}
+
+.admin-field label {
+  display: block;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 0.35rem;
+}
+
+.admin-field select,
+.admin-field textarea,
+.admin-field input {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.admin-proof-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--trust-700);
+}
+
+.admin-proof-link:hover {
+  text-decoration: underline;
+}
+
+.admin-denied {
+  max-width: 28rem;
+  margin: 4rem auto;
+  text-align: center;
+  padding: 2rem;
+}
+
+.admin-denied h1 {
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+}
+
+.admin-denied p {
+  color: var(--gray-600);
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 767px) {
+  .admin-actions .btn {
+    width: 100%;
+  }
+}

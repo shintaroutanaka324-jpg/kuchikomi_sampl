@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>新規登録 | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .register-error {
+      margin-bottom: 1rem;
+      padding: 0.75rem 1rem;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: #b91c1c;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+    }
+  </style>
 </head>
 <body>
   <div id="site-header"></div>
@@ -38,6 +50,7 @@
           <a href="privacy.html" style="color:var(--blue-600)">プライバシーポリシー</a>
           に同意したものとみなされます。
         </p>
+        <p id="register-error" class="register-error" role="alert" hidden></p>
         <button type="submit" class="btn btn-trust btn-block btn-lg" id="register-submit">アカウントを作成</button>
       </form>
       <p class="auth-footer">
@@ -65,12 +78,27 @@
 
       const form = document.getElementById("register-form");
       const submitBtn = document.getElementById("register-submit");
+      const errorEl = document.getElementById("register-error");
+
+      function showRegisterError(message) {
+        if (!errorEl) return;
+        if (message) {
+          errorEl.textContent = message;
+          errorEl.hidden = false;
+        } else {
+          errorEl.textContent = "";
+          errorEl.hidden = true;
+        }
+      }
 
       form.addEventListener("submit", async (e) => {
         e.preventDefault();
+        showRegisterError("");
 
         if (!window.Auth.isConfigured()) {
-          App.showToast("認証の設定が完了していません。管理者にお問い合わせください。", "error");
+          const msg = "認証の設定が完了していません。管理者にお問い合わせください。";
+          showRegisterError(msg);
+          App.showToast(msg, "error");
           return;
         }
 
@@ -88,7 +116,19 @@
         submitBtn.textContent = "登録中...";
 
         try {
+          if (await Auth.isEmailRegistered(email)) {
+            showRegisterError(Auth.DUPLICATE_EMAIL_MESSAGE);
+            App.showToast(Auth.DUPLICATE_EMAIL_MESSAGE, "error");
+            return;
+          }
+
           const data = await Auth.signUp({ email, password: pw, displayName: name });
+
+          if (Auth.isDuplicateSignUpResponse(data)) {
+            showRegisterError(Auth.DUPLICATE_EMAIL_MESSAGE);
+            App.showToast(Auth.DUPLICATE_EMAIL_MESSAGE, "error");
+            return;
+          }
 
           if (data.session) {
             App.showToast("アカウントを作成しました");
@@ -99,7 +139,9 @@
           App.showToast("確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。");
           form.reset();
         } catch (err) {
-          App.showToast(err.message || "登録に失敗しました", "error");
+          const msg = err.message || "登録に失敗しました";
+          showRegisterError(msg);
+          App.showToast(msg, "error");
         } finally {
           submitBtn.disabled = false;
           submitBtn.textContent = "アカウントを作成";

@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>口コミ審査（運営） | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+</head>
+<body class="page-admin">
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content admin-page">
+    <div class="container page-inner page-inner--medium">
+      <header class="admin-header">
+        <h1>口コミ審査（運営）</h1>
+        <p>投稿された口コミを確認し、承認後に公開します。</p>
+      </header>
+
+      <div class="admin-tabs" role="tablist">
+        <button type="button" class="admin-tab active" data-tab="pending" role="tab">審査待ち</button>
+        <button type="button" class="admin-tab" data-tab="approved" role="tab">公開済み</button>
+        <button type="button" class="admin-tab" data-tab="rejected" role="tab">却下</button>
+      </div>
+
+      <div id="admin-root"></div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>
