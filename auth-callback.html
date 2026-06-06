@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>メールアドレス確認 | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <style>
+    .auth-callback-card {
+      max-width: 28rem;
+      margin: 4rem auto;
+      padding: 2rem;
+      text-align: center;
+      background: #fff;
+      border: 1px solid var(--gray-100);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow-sm);
+    }
+    .auth-callback-card h1 {
+      font-size: 1.25rem;
+      margin-bottom: 0.75rem;
+    }
+    .auth-callback-card p {
+      color: var(--gray-600);
+      line-height: 1.7;
+      font-size: 0.9375rem;
+    }
+    .auth-callback-spinner {
+      width: 2rem;
+      height: 2rem;
+      margin: 0 auto 1rem;
+      border: 3px solid var(--trust-100);
+      border-top-color: var(--trust-600);
+      border-radius: 50%;
+      animation: auth-spin 0.8s linear infinite;
+    }
+    @keyframes auth-spin {
+      to { transform: rotate(360deg); }
+    }
+    .auth-callback-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 0.65rem;
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div id="site-header"></div>
+
+  <main class="page-content">
+    <div class="auth-callback-card" id="auth-callback-root">
+      <div class="auth-callback-spinner" aria-hidden="true"></div>
+      <h1>メールアドレスを確認しています</h1>
+      <p>しばらくお待ちください…</p>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      await App.whenReady();
+
+      const root = document.getElementById("auth-callback-root");
+
+      if (!Auth.isConfigured()) {
+        root.innerHTML = `
+          <h1>設定エラー</h1>
+          <p>認証の設定が完了していません。</p>
+          <div class="auth-callback-actions">
+            <a href="index.html" class="btn btn-outline">トップへ戻る</a>
+          </div>`;
+        return;
+      }
+
+      const result = await Auth.completeAuthFromUrl();
+
+      if (Auth.isLoggedIn() || result.ok) {
+        root.innerHTML = `
+          <h1>メールアドレスの確認が完了しました</h1>
+          <p>ログイン状態になっています。トップページへ移動します。</p>`;
+        App.showToast("メールアドレスの確認が完了しました");
+        setTimeout(() => {
+          window.location.replace("index.html");
+        }, 1200);
+        return;
+      }
+
+      root.innerHTML = `
+        <h1>確認リンクが無効です</h1>
+        <p>${App.escapeHtml(result.error || "リンクの有効期限が切れているか、すでに使用済みの可能性があります。")}</p>
+        <div class="auth-callback-actions">
+          <a href="login.html" class="btn btn-trust">ログイン</a>
+          <a href="register.html" class="btn btn-outline">新規登録</a>
+        </div>`;
+    });
+  </script>
+</body>
+</html>

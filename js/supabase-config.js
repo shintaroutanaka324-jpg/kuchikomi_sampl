@@ -11,4 +11,6 @@
 window.SUPABASE_CONFIG = {
   url: "https://pzqkfknrzvrqrfdemetq.supabase.co",
   anonKey: "sb_publishable_MLj2s3NRvUAqis--XvQenQ_YAjys8j_",
+  // GitHub Pages のプロジェクトサイト用（末尾スラッシュ付き）
+  siteBasePath: "/kuchikomi_sampl/",
 };

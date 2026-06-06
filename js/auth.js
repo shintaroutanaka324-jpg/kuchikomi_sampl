@@ -16,6 +16,23 @@
     return true;
   }
 
+  function getSiteBaseUrl() {
+    const configPath = getConfig().siteBasePath;
+    if (configPath) {
+      const normalized = configPath.startsWith("/") ? configPath : `/${configPath}`;
+      const withSlash = normalized.endsWith("/") ? normalized : `${normalized}/`;
+      return `${window.location.origin}${withSlash}`;
+    }
+    const path = window.location.pathname;
+    const lastSlash = path.lastIndexOf("/");
+    const dir = lastSlash >= 0 ? path.slice(0, lastSlash + 1) : "/";
+    return `${window.location.origin}${dir}`;
+  }
+
+  function getAuthPageUrl(filename) {
+    return `${getSiteBaseUrl()}${filename}`;
+  }
+
   function clearLegacyAuthStorage() {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("userEmail");
@@ -53,6 +70,37 @@
     profile = data;
   }
 
+  async function completeAuthFromUrl() {
+    if (!client) return { ok: false };
+
+    const pageUrl = new URL(window.location.href);
+    const errorDescription = pageUrl.searchParams.get("error_description");
+    if (errorDescription) {
+      return { ok: false, error: decodeURIComponent(errorDescription.replace(/\+/g, " ")) };
+    }
+
+    const code = pageUrl.searchParams.get("code");
+    if (code) {
+      const { data, error } = await client.auth.exchangeCodeForSession(code);
+      if (error) return { ok: false, error: mapAuthError(error) };
+      session = data.session ?? null;
+      if (session?.user) await fetchProfile(session.user.id);
+      window.history.replaceState({}, document.title, pageUrl.pathname);
+      return { ok: true };
+    }
+
+    if (pageUrl.hash.includes("access_token=")) {
+      const { data, error } = await client.auth.getSession();
+      if (error) return { ok: false, error: mapAuthError(error) };
+      session = data.session ?? null;
+      if (session?.user) await fetchProfile(session.user.id);
+      window.history.replaceState({}, document.title, pageUrl.pathname);
+      return { ok: Boolean(session) };
+    }
+
+    return { ok: false };
+  }
+
   async function init() {
     clearLegacyAuthStorage();
 
@@ -64,7 +112,16 @@
 
     await loadSupabaseLib();
     const { url, anonKey } = getConfig();
-    client = window.supabase.createClient(url, anonKey);
+    client = window.supabase.createClient(url, anonKey, {
+      auth: {
+        flowType: "pkce",
+        detectSessionInUrl: true,
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    });
+
+    await completeAuthFromUrl();
 
     const { data, error } = await client.auth.getSession();
     if (error) {
@@ -203,10 +260,10 @@
 
     const { data, error } = await supabase.auth.signUp({
       email: trimmedEmail,
-      email,
       password,
       options: {
         data: { display_name: displayName },
+        emailRedirectTo: getAuthPageUrl("auth-callback.html"),
       },
     });
     if (error) throw new Error(mapAuthError(error));
@@ -245,7 +302,7 @@
 
   async function resetPassword(email) {
     const supabase = ensureClient();
-    const redirectTo = `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, "")}reset-password.html`;
+    const redirectTo = getAuthPageUrl("reset-password.html");
     const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw new Error(mapAuthError(error));
   }
@@ -302,6 +359,9 @@
     mapAuthError,
     isEmailRegistered,
     isDuplicateSignUpResponse,
+    completeAuthFromUrl,
+    getSiteBaseUrl,
+    getAuthPageUrl,
     DUPLICATE_EMAIL_MESSAGE,
   };
 })();

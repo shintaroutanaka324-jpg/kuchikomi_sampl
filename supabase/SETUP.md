@@ -36,14 +36,32 @@ Dashboard → **Authentication** → **Providers** → **Email**
 | Confirm email | OFF（すぐログイン可能） | ON（メール確認を推奨） |
 | Secure email change | ON | ON |
 
-### パスワードリセット
+### URL Configuration（重要）
 
 Dashboard → **Authentication** → **URL Configuration**
 
-- **Site URL**: `https://あなたのドメイン`（例: GitHub Pages の URL）
-- **Redirect URLs** に以下を追加:
-  - `https://あなたのドメイン/reset-password.html`
-  - ローカル開発時: `http://localhost:5500/reset-password.html` など
+**Site URL**（末尾スラッシュ付き・`/index` は付けない）:
+
+```
+https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/
+```
+
+**Redirect URLs** に以下をすべて追加:
+
+```
+https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/**
+https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/auth-callback.html
+https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/reset-password.html
+```
+
+ローカル開発時は例:
+
+```
+http://localhost:5500/**
+http://localhost:5500/kuchikomi_sampl/**
+```
+
+メール確認リンクは `auth-callback.html` に戻り、そこでログイン状態になります。
 
 ## 5. メール重複チェック（新規登録）
 
