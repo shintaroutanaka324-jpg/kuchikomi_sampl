@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>新規登録 | Open e-learning</title>
+  <title>新規登録 | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -17,28 +17,28 @@
       <form id="register-form">
         <div class="form-group">
           <label class="form-label" for="name">ユーザー名</label>
-          <input type="text" class="form-input" id="name" required placeholder="山田太郎" />
+          <input type="text" class="form-input" id="name" required placeholder="山田太郎" autocomplete="name" />
         </div>
         <div class="form-group">
           <label class="form-label" for="email">メールアドレス</label>
-          <input type="email" class="form-input" id="email" required placeholder="example@email.com" />
+          <input type="email" class="form-input" id="email" required placeholder="example@email.com" autocomplete="email" />
         </div>
         <div class="form-group">
           <label class="form-label" for="password">パスワード</label>
-          <input type="password" class="form-input" id="password" required minlength="8" placeholder="8文字以上" />
+          <input type="password" class="form-input" id="password" required minlength="8" placeholder="8文字以上" autocomplete="new-password" />
         </div>
         <div class="form-group">
           <label class="form-label" for="passwordConfirm">パスワード（確認）</label>
-          <input type="password" class="form-input" id="passwordConfirm" required placeholder="••••••••" />
+          <input type="password" class="form-input" id="passwordConfirm" required placeholder="••••••••" autocomplete="new-password" />
         </div>
         <p style="font-size:0.75rem;color:var(--gray-600);margin-bottom:1rem">
           登録することで
-          <a href="#" style="color:var(--blue-600)">利用規約</a>
+          <a href="terms.html" style="color:var(--blue-600)">利用規約</a>
           および
-          <a href="#" style="color:var(--blue-600)">プライバシーポリシー</a>
+          <a href="privacy.html" style="color:var(--blue-600)">プライバシーポリシー</a>
           に同意したものとみなされます。
         </p>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">アカウントを作成</button>
+        <button type="submit" class="btn btn-trust btn-block btn-lg" id="register-submit">アカウントを作成</button>
       </form>
       <p class="auth-footer">
         すでにアカウントをお持ちの方は
@@ -55,27 +55,55 @@
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
+      await App.whenReady();
+
       App.renderBreadcrumb([
         { label: "トップ", path: "index.html" },
         { label: "新規登録" },
       ]);
 
-      document.getElementById("register-form").addEventListener("submit", (e) => {
+      const form = document.getElementById("register-form");
+      const submitBtn = document.getElementById("register-submit");
+
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
+
+        if (!window.Auth.isConfigured()) {
+          App.showToast("認証の設定が完了していません。管理者にお問い合わせください。", "error");
+          return;
+        }
+
         const pw = document.getElementById("password").value;
         const pw2 = document.getElementById("passwordConfirm").value;
         if (pw !== pw2) {
           App.showToast("パスワードが一致しません", "error");
           return;
         }
-        const name = document.getElementById("name").value;
-        const email = document.getElementById("email").value;
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("userName", name);
-        App.showToast("アカウントを作成しました");
-        setTimeout(() => (window.location.href = "index.html"), 800);
+
+        const name = document.getElementById("name").value.trim();
+        const email = document.getElementById("email").value.trim();
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "登録中...";
+
+        try {
+          const data = await Auth.signUp({ email, password: pw, displayName: name });
+
+          if (data.session) {
+            App.showToast("アカウントを作成しました");
+            setTimeout(() => (window.location.href = "index.html"), 800);
+            return;
+          }
+
+          App.showToast("確認メールを送信しました。メール内のリンクをクリックして登録を完了してください。");
+          form.reset();
+        } catch (err) {
+          App.showToast(err.message || "登録に失敗しました", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "アカウントを作成";
+        }
       });
     });
   </script>

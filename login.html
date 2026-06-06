@@ -3,30 +3,30 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ログイン | Open e-learning</title>
+  <title>ログイン | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body>
+<body class="page-auth page-auth-login">
   <div id="site-header"></div>
   <div id="breadcrumb"></div>
 
   <main class="page-content">
     <div class="auth-card">
       <h1>ログイン</h1>
-      <p class="subtitle">アカウントにログインして口コミを投稿・閲覧しましょう</p>
+      <p class="subtitle">カウマエのアカウントにログインして、口コミを投稿・閲覧しましょう</p>
       <form id="login-form">
         <div class="form-group">
           <label class="form-label" for="email">メールアドレス</label>
-          <input type="email" class="form-input" id="email" required placeholder="example@email.com" />
+          <input type="email" class="form-input" id="email" required placeholder="example@email.com" autocomplete="email" />
         </div>
         <div class="form-group">
           <label class="form-label" for="password">パスワード</label>
-          <input type="password" class="form-input" id="password" required placeholder="••••••••" />
+          <input type="password" class="form-input" id="password" required placeholder="••••••••" autocomplete="current-password" />
         </div>
-        <button type="submit" class="btn btn-primary btn-block btn-lg">ログイン</button>
+        <button type="submit" class="btn btn-trust btn-block btn-lg" id="login-submit">ログイン</button>
       </form>
       <p class="auth-footer">
-        <a href="#">パスワードを忘れた方</a>
+        <a href="forgot-password.html">パスワードを忘れた方</a>
       </p>
       <p class="auth-footer">
         アカウントをお持ちでない方は
@@ -43,20 +43,44 @@
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("DOMContentLoaded", async () => {
+      await App.whenReady();
+
       App.renderBreadcrumb([
         { label: "トップ", path: "index.html" },
         { label: "ログイン" },
       ]);
 
-      document.getElementById("login-form").addEventListener("submit", (e) => {
+      const form = document.getElementById("login-form");
+      const submitBtn = document.getElementById("login-submit");
+
+      form.addEventListener("submit", async (e) => {
         e.preventDefault();
-        const email = document.getElementById("email").value;
-        localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("userEmail", email);
-        localStorage.setItem("userName", email.split("@")[0]);
-        App.showToast("ログインしました");
-        setTimeout(() => (window.location.href = "index.html"), 800);
+
+        if (!window.Auth.isConfigured()) {
+          App.showToast("認証の設定が完了していません。管理者にお問い合わせください。", "error");
+          return;
+        }
+
+        const email = document.getElementById("email").value.trim();
+        const password = document.getElementById("password").value;
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "ログイン中...";
+
+        try {
+          await Auth.signIn({ email, password });
+          App.showToast("ログインしました");
+          const redirect = new URLSearchParams(window.location.search).get("redirect");
+          setTimeout(() => {
+            window.location.href = redirect || "index.html";
+          }, 800);
+        } catch (err) {
+          App.showToast(err.message || "ログインに失敗しました", "error");
+        } finally {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "ログイン";
+        }
       });
     });
   </script>

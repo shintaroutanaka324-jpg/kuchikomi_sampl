@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ご利用ガイド | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content">
+    <div class="container content-narrow">
+      <div class="page-header text-center">
+        <h1>ご利用ガイド</h1>
+        <p style="color:var(--gray-600)">購入前に口コミで失敗を防ぐための使い方</p>
+      </div>
+
+      <section class="guide-block">
+        <h2>購入前によくある不安</h2>
+        <div class="grid-3 pain-grid">
+          <article class="pain-card">
+            <h3>高額講座、本当に元が取れる？</h3>
+            <p>オンライン講座・コーチング・情報商材は高額になりがち。購入前に実態を知りたい。</p>
+          </article>
+          <article class="pain-card">
+            <h3>SNSの煽り、信じていい？</h3>
+            <p>発信者の宣伝と購入後の現実にギャップがないか、口コミで確認したい。</p>
+          </article>
+          <article class="pain-card">
+            <h3>公式だけでは判断できない</h3>
+            <p>中立的な口コミで透明性を確保してから申し込みたい。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="guide-block">
+        <h2>かんたん3ステップ</h2>
+        <div class="steps-flow steps-flow--trust">
+          <div class="step-card">
+            <span class="step-num-label">STEP 1</span>
+            <h3>名前で検索</h3>
+            <p>講座・コーチ・スクール名を入力</p>
+          </div>
+          <div class="step-card">
+            <span class="step-num-label">STEP 2</span>
+            <h3>口コミとバッジを確認</h3>
+            <p>購入記録バッジ付きの口コミを参考に比較</p>
+          </div>
+          <div class="step-card">
+            <span class="step-num-label">STEP 3</span>
+            <h3>納得してから申込</h3>
+            <p>リスクを理解したうえで判断</p>
+          </div>
+        </div>
+      </section>
+
+      <p class="text-center mt-8">
+        <a href="index.html" class="btn btn-trust">口コミを検索する</a>
+      </p>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      App.renderBreadcrumb([
+        { label: "トップ", path: "index.html" },
+        { label: "ご利用ガイド" },
+      ]);
+    });
+  </script>
+</body>
+</html>

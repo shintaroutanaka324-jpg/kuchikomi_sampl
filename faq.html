@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Q&A | Open e-learning</title>
+  <title>Q&A | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
@@ -11,13 +11,15 @@
   <div id="breadcrumb"></div>
 
   <main class="page-content">
-    <div class="container" style="max-width:56rem">
+    <div class="container">
+      <div class="page-inner page-inner--medium">
       <div class="page-header text-center">
         <h1>❓ よくある質問</h1>
-        <p style="color:var(--gray-600)">Open e-learningに関するよくある質問をまとめました</p>
+        <p style="color:var(--gray-600)">カウマエに関するよくある質問をまとめました</p>
       </div>
 
       <div id="faq-list"></div>
+      </div>
     </div>
   </main>
 
@@ -28,8 +30,12 @@
   <script>
     const FAQ_ITEMS = [
       {
+        q: "どんなサービスの口コミが載っていますか？",
+        a: "オンライン講座、コーチング、情報商材、SNS発信者の商品、オンラインサロン、恋愛コンサル、副業スクールなどが対象です。",
+      },
+      {
         q: "口コミを閲覧するにはどうすればよいですか？",
-        a: "口コミの全文閲覧には、口コミを1件投稿する（無料）、または月額880円プランをお申し込みいただく方法があります。いずれも1か月間、すべての口コミを閲覧できます。",
+        a: "口コミの全文閲覧には、口コミを1件投稿する（無料・1か月閲覧）、または月額880円プランをお申し込みいただく方法があります。詳細は料金プランページをご覧ください。",
       },
       {
         q: "口コミの投稿は匿名でできますか？",
@@ -40,8 +46,9 @@
         a: "投稿後の口コミは編集・削除が可能です。マイページから投稿履歴を確認し、編集または削除を行うことができます。",
       },
       {
-        q: "どのようなオンライン情報サービスが登録されていますか？",
-        a: "ビジネス、プログラミング、デザイン、マーケティング、語学、自己啓発など、幅広いジャンルのオンライン情報サービスが登録されています。",
+        q: "購入証明済みなどのバッジとは？",
+        a: "購入証明の提出は任意です。領収書・決済画面などを提出いただいた口コミに「購入証明済み」バッジが付きます。本人確認などの追加認証はありません。購入証明はモザイク処理され、個人情報は公開されません。バッジのない口コミも掲載されます。",
+        id: "badges",
       },
       {
         q: "サービスの利用に料金はかかりますか？",
@@ -49,7 +56,7 @@
       },
       {
         q: "口コミの信頼性はどのように担保されていますか？",
-        a: "実際に購入・利用した方のみが口コミを投稿できるシステムになっています。また、不適切な投稿は運営によって削除される場合があります。",
+        a: "すべての口コミに購入記録の提出を義務づけているわけではありません。購入記録を提出いただいた口コミにはバッジで目印を付け、比較検討の参考にしていただけます。不適切な投稿は運営が確認のうえ削除する場合があります。",
       },
       {
         q: "アカウントを削除したい場合はどうすればよいですか？",
@@ -68,11 +75,11 @@
       ]);
 
       document.getElementById("faq-list").innerHTML = FAQ_ITEMS.map(
-        (item, i) => `
-        <div class="faq-item">
+        (item) => `
+        <div class="faq-item"${item.id ? ` id="${item.id}"` : ""}>
           <button type="button" class="faq-question">
             <span style="display:flex;gap:0.75rem;align-items:flex-start;text-align:left">
-              <span style="flex-shrink:0;width:1.5rem;height:1.5rem;border-radius:50%;background:var(--blue-100);color:var(--blue-600);display:flex;align-items:center;justify-content:center;font-size:0.875rem;font-weight:600">Q</span>
+              <span class="faq-q-badge">Q</span>
               ${App.escapeHtml(item.q)}
             </span>
             <span class="faq-chevron">▼</span>

@@ -1,113 +1,293 @@
-const PER_PAGE = 5;
+const PER_PAGE = 10;
 
-const HIGHLIGHT_TAGS = [
-  "サポート充実",
-  "コスパ良好",
-  "内容が充実",
-  "成果が出た",
-  "初心者向け",
+const RATING_FILTERS = [
+  { value: "", label: "指定なし" },
+  { value: "4.5", label: "★4.5以上" },
+  { value: "4.0", label: "★4.0以上" },
+  { value: "3.0", label: "★3.0以上" },
+];
+
+const REVIEW_COUNT_FILTERS = [
+  { value: "", label: "指定なし" },
+  { value: "10", label: "10件以上" },
+  { value: "30", label: "30件以上" },
+  { value: "50", label: "50件以上" },
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
-  const searchInput = document.getElementById("filter-search");
-  const genreSelect = document.getElementById("filter-genre");
   const sortSelect = document.getElementById("filter-sort");
+  const proofCheckbox = document.getElementById("filter-proof");
+  const filterPanel = document.getElementById("rs-filter");
+  const filterToggle = document.getElementById("filter-toggle");
+
   let currentPage = 1;
+  let searchQuery = (App.getQueryParam("search") || "").trim();
+  let selectedCategories = new Set();
+  let selectedRating = "";
+  let selectedReviewCount = "";
 
-  CATEGORIES.forEach((c) => {
-    const opt = document.createElement("option");
-    opt.value = c.value;
-    opt.textContent = c.label;
-    genreSelect.appendChild(opt);
-  });
+  const allProducts = PRODUCTS.map((product) => ({
+    product,
+    stats: getProductDisplayStats(product),
+  }));
 
-  const urlSearch = App.getQueryParam("search");
-  const urlGenre = App.getQueryParam("genre") || App.getQueryParam("category");
-  if (urlSearch) searchInput.value = urlSearch;
-  if (urlGenre && [...genreSelect.options].some((o) => o.value === urlGenre)) {
-    genreSelect.value = urlGenre;
+  renderFilterUI();
+  renderPopularTags();
+  renderRanking();
+  renderRecentlyViewed();
+
+  const urlCategory = App.getQueryParam("genre") || App.getQueryParam("category");
+  if (urlCategory) {
+    selectedCategories.add(urlCategory);
+    syncCategoryCheckboxes();
   }
 
-  const allReviews = buildReviewList();
+  function renderFilterUI() {
+    const catContainer = document.getElementById("filter-categories");
+    catContainer.innerHTML = FILTER_CATEGORIES.map(
+      (c) => `
+      <label class="rs-filter-checkbox">
+        <input type="checkbox" value="${c.value}" data-filter="category" />
+        <span>${App.escapeHtml(c.label)}</span>
+      </label>`
+    ).join("");
 
-  function filterReviews() {
-    let list = [...allReviews];
-    const search = searchInput.value.trim().toLowerCase();
-    const genre = genreSelect.value;
+    document.getElementById("filter-rating").innerHTML = RATING_FILTERS.map(
+      (f) => `
+      <label class="rs-filter-radio">
+        <input type="radio" name="rating-filter" value="${f.value}" ${f.value === "" ? "checked" : ""} />
+        <span>${App.escapeHtml(f.label)}</span>
+      </label>`
+    ).join("");
+
+    document.getElementById("filter-review-count").innerHTML = REVIEW_COUNT_FILTERS.map(
+      (f) => `
+      <label class="rs-filter-radio">
+        <input type="radio" name="review-count-filter" value="${f.value}" ${f.value === "" ? "checked" : ""} />
+        <span>${App.escapeHtml(f.label)}</span>
+      </label>`
+    ).join("");
+  }
+
+  function renderPopularTags() {
+    const container = document.getElementById("popular-tags");
+    container.innerHTML = `
+      <span class="rs-tags-label">人気タグ</span>
+      ${POPULAR_TAGS.map(
+        (tag) =>
+          `<button type="button" class="rs-tag" data-category="${tag.category}">${App.escapeHtml(tag.label)}</button>`
+      ).join("")}
+    `;
+
+    container.querySelectorAll(".rs-tag").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const cat = btn.dataset.category;
+        if (selectedCategories.has(cat)) {
+          selectedCategories.delete(cat);
+        } else {
+          selectedCategories.add(cat);
+        }
+        syncCategoryCheckboxes();
+        currentPage = 1;
+        render();
+        scrollToResults();
+      });
+    });
+  }
+
+  function syncCategoryCheckboxes() {
+    document.querySelectorAll('[data-filter="category"]').forEach((input) => {
+      input.checked = selectedCategories.has(input.value);
+    });
+    document.querySelectorAll(".rs-tag").forEach((btn) => {
+      btn.classList.toggle("active", selectedCategories.has(btn.dataset.category));
+    });
+  }
+
+  function readFiltersFromUI() {
+    selectedCategories = new Set(
+      [...document.querySelectorAll('[data-filter="category"]:checked')].map((el) => el.value)
+    );
+    selectedRating =
+      document.querySelector('input[name="rating-filter"]:checked')?.value || "";
+    selectedReviewCount =
+      document.querySelector('input[name="review-count-filter"]:checked')?.value || "";
+  }
+
+  function filterProducts() {
+    let list = [...allProducts];
+    const search = searchQuery.toLowerCase();
     const sort = sortSelect.value;
+    const proofOnly = proofCheckbox.checked;
 
-    if (genre && genre !== "all") {
-      list = list.filter((item) => item.product.category === genre);
+    if (selectedCategories.size > 0) {
+      list = list.filter((item) => selectedCategories.has(item.product.category));
+    }
+
+    if (selectedRating) {
+      const min = parseFloat(selectedRating, 10);
+      list = list.filter((item) => item.stats.rating >= min);
+    }
+
+    if (selectedReviewCount) {
+      const min = parseInt(selectedReviewCount, 10);
+      list = list.filter((item) => item.stats.displayCount >= min);
+    }
+
+    if (proofOnly) {
+      list = list.filter((item) => item.stats.hasProof);
     }
 
     if (search) {
       list = list.filter((item) => {
         const p = item.product;
-        return (
-          item.title.toLowerCase().includes(search) ||
-          item.content.toLowerCase().includes(search) ||
-          item.userName.toLowerCase().includes(search) ||
+        const inProduct =
           p.title.toLowerCase().includes(search) ||
           p.instructor.toLowerCase().includes(search) ||
-          getCategoryLabel(p.category).toLowerCase().includes(search)
+          p.description.toLowerCase().includes(search) ||
+          (p.platform || "").toLowerCase().includes(search) ||
+          getCategoryLabel(p.category).toLowerCase().includes(search) ||
+          getCategoryShortLabel(p.category).toLowerCase().includes(search);
+
+        if (inProduct) return true;
+
+        return item.stats.summary.reviews.some(
+          (r) =>
+            r.title.toLowerCase().includes(search) ||
+            r.content.toLowerCase().includes(search)
         );
       });
     }
 
-    if (sort === "date-new") {
-      list.sort((a, b) => new Date(b.date) - new Date(a.date));
+    if (sort === "reviews-high") {
+      list.sort((a, b) => b.stats.displayCount - a.stats.displayCount);
     } else if (sort === "rating-high") {
-      list.sort((a, b) => b.rating - a.rating);
-    } else if (sort === "rating-low") {
-      list.sort((a, b) => a.rating - b.rating);
+      list.sort((a, b) => b.stats.rating - a.stats.rating);
+    } else if (sort === "date-new") {
+      list.sort((a, b) => {
+        const da = a.stats.summary.latestDate ? new Date(a.stats.summary.latestDate) : 0;
+        const db = b.stats.summary.latestDate ? new Date(b.stats.summary.latestDate) : 0;
+        return db - da;
+      });
+    } else {
+      list.sort((a, b) => {
+        const scoreA = a.stats.displayCount * 0.7 + a.stats.rating * 25;
+        const scoreB = b.stats.displayCount * 0.7 + b.stats.rating * 25;
+        return scoreB - scoreA;
+      });
     }
 
     return list;
   }
 
   function renderStarsHtml(rating) {
+    const rounded = Math.round(rating);
     let html = "";
     for (let i = 1; i <= 5; i++) {
-      html += `<span class="${i <= Math.round(rating) ? "on" : "off"}">★</span>`;
+      html += `<span class="${i <= rounded ? "on" : "off"}">★</span>`;
     }
     return html;
   }
 
-  function formatDate(dateStr) {
-    const d = new Date(dateStr);
-    return `${d.getFullYear()}年${d.getMonth() + 1}月${d.getDate()}日`;
+  function truncateLine(text, max = 28) {
+    if (!text) return "";
+    const t = String(text).trim();
+    return t.length > max ? `${t.slice(0, max)}…` : t;
   }
 
-  function renderReviewCard(item) {
-    const p = item.product;
-    const tag = item.pros?.[0] || HIGHLIGHT_TAGS[parseInt(item.id.replace(/\D/g, ""), 10) % HIGHLIGHT_TAGS.length];
-    const brand = p.instructor.split(/[\s・]/)[0] || p.instructor;
+  function renderProductCard({ product, stats }) {
+    const detailUrl = `review-detail.html?id=${product.id}`;
+    const catLabel = getCategoryShortLabel(product.category);
 
     return `
-      <a href="review-detail.html?id=${p.id}" class="review-list-card">
-        <div class="review-list-brand">
-          <img src="${p.imageUrl}" alt="${App.escapeHtml(brand)}" />
-          <span class="review-list-cat">${App.escapeHtml(getCategoryLabel(p.category))}</span>
-        </div>
-        <div class="review-list-content">
-          <h2 class="review-list-title">${App.escapeHtml(item.title)}</h2>
-          <div class="review-list-meta">
-            <span class="review-list-stars">${renderStarsHtml(item.rating)}</span>
-            <span class="review-list-score">${item.rating.toFixed(1)}</span>
-            <span class="review-list-date">${formatDate(item.date)}</span>
+      <article class="rs-card">
+        <a href="${detailUrl}" class="rs-card-thumb" tabindex="-1" aria-hidden="true">
+          <img src="${product.imageUrl}" alt="" loading="lazy" decoding="async" />
+          ${
+            stats.hasProof
+              ? `<span class="rs-card-proof-badge">証明 ${stats.proofRate}%</span>`
+              : ""
+          }
+        </a>
+        <div class="rs-card-main">
+          <div class="rs-card-head">
+            <span class="rs-card-cat">${App.escapeHtml(catLabel)}</span>
+            <h2 class="rs-card-provider">
+              <a href="${detailUrl}">${App.escapeHtml(product.instructor)}</a>
+            </h2>
+            <p class="rs-card-service">${App.escapeHtml(product.title)}</p>
           </div>
-          <p class="review-list-snippet">${App.escapeHtml(item.content)}</p>
-          <div class="review-list-footer">
-            <span class="review-list-user">
-              <span class="review-list-avatar">👤</span>
-              ${App.escapeHtml(item.userName)} · ${item.age} · ${item.gender}
-              <span class="review-list-period">受講期間: ${item.studyPeriod}</span>
+          <div class="rs-card-highlights">
+            <p class="rs-card-pro">
+              <span class="rs-card-hl-label">良</span>
+              ${App.escapeHtml(truncateLine(stats.highlightPro, 36))}
+            </p>
+            <p class="rs-card-con">
+              <span class="rs-card-hl-label">悪</span>
+              ${App.escapeHtml(truncateLine(stats.highlightCon, 36))}
+            </p>
+          </div>
+        </div>
+        <div class="rs-card-score" aria-label="口コミ ${stats.displayCount}件、評価 ${stats.rating}">
+          <div class="rs-card-review-hero">
+            <span class="rs-card-review-num">${stats.displayCount.toLocaleString("ja-JP")}</span>
+            <span class="rs-card-review-label">件</span>
+          </div>
+          <div class="rs-card-metrics">
+            <span class="rs-card-metric-inline">
+              <span class="rs-card-stars">${renderStarsHtml(stats.rating)}</span>
+              ${stats.rating.toFixed(1)}
             </span>
-            <span class="review-list-tag">${App.escapeHtml(tag)}</span>
+            <span class="rs-card-metric-inline rs-card-metric-inline--rec">
+              おすすめ ${stats.recommendScore.toFixed(1)}
+            </span>
           </div>
         </div>
-        <span class="review-list-arrow" aria-hidden="true">›</span>
-      </a>`;
+        <a href="${detailUrl}" class="btn btn-trust rs-card-btn">口コミを見る</a>
+      </article>`;
+  }
+
+  function renderRanking() {
+    const ranked = [...allProducts]
+      .sort((a, b) => b.stats.displayCount - a.stats.displayCount)
+      .slice(0, 5);
+
+    document.getElementById("ranking-list").innerHTML = ranked
+      .map(
+        ({ product, stats }, i) => `
+        <li class="rs-ranking-item">
+          <span class="rs-ranking-rank">${i + 1}</span>
+          <a href="review-detail.html?id=${product.id}" class="rs-ranking-link">
+            <span class="rs-ranking-title">${App.escapeHtml(truncateLine(product.instructor, 18))}</span>
+            <span class="rs-ranking-meta">${App.escapeHtml(truncateLine(product.title, 20))} · 口コミ ${stats.displayCount}件</span>
+          </a>
+        </li>`
+      )
+      .join("");
+  }
+
+  function renderRecentlyViewed() {
+    const recent = getRecentlyViewedProducts();
+    const container = document.getElementById("recent-list");
+
+    if (!recent.length) {
+      container.innerHTML = `<p class="rs-side-empty">まだ閲覧履歴はありません</p>`;
+      return;
+    }
+
+    container.innerHTML = recent
+      .map((product) => {
+        const stats = getProductDisplayStats(product);
+        return `
+        <a href="review-detail.html?id=${product.id}" class="rs-side-item">
+          <img src="${product.imageUrl}" alt="" loading="lazy" decoding="async" />
+          <span class="rs-side-item-text">
+            <span class="rs-side-item-title">${App.escapeHtml(truncateLine(product.instructor, 16))}</span>
+            <span class="rs-side-item-meta">${App.escapeHtml(truncateLine(product.title, 18))}</span>
+          </span>
+        </a>`;
+      })
+      .join("");
   }
 
   function renderPagination(totalPages) {
@@ -117,10 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    let html = `<button type="button" class="page-btn" data-page="prev" ${currentPage === 1 ? "disabled" : ""}>‹</button>`;
+    let html = `<button type="button" class="page-btn" data-page="prev" ${currentPage === 1 ? "disabled" : ""} aria-label="前のページ">‹</button>`;
 
-    const pages = getPageNumbers(currentPage, totalPages);
-    pages.forEach((p) => {
+    getPageNumbers(currentPage, totalPages).forEach((p) => {
       if (p === "...") {
         html += `<span class="page-ellipsis">…</span>`;
       } else {
@@ -128,7 +307,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    html += `<button type="button" class="page-btn" data-page="next" ${currentPage === totalPages ? "disabled" : ""}>›</button>`;
+    html += `<button type="button" class="page-btn" data-page="next" ${currentPage === totalPages ? "disabled" : ""} aria-label="次のページ">›</button>`;
     nav.innerHTML = html;
 
     nav.querySelectorAll(".page-btn").forEach((btn) => {
@@ -138,18 +317,25 @@ document.addEventListener("DOMContentLoaded", () => {
         else if (val === "next" && currentPage < totalPages) currentPage++;
         else if (val !== "prev" && val !== "next") currentPage = parseInt(val, 10);
         render();
-        window.scrollTo({ top: document.querySelector(".reviews-body").offsetTop - 80, behavior: "smooth" });
+        scrollToResults();
       });
     });
   }
 
+  function scrollToResults() {
+    const target = document.querySelector(".rs-results-head");
+    if (target) {
+      window.scrollTo({ top: target.offsetTop - 88, behavior: "smooth" });
+    }
+  }
+
   function render() {
-    const list = filterReviews();
+    const list = filterProducts();
     const total = list.length;
     const totalPages = Math.max(1, Math.ceil(total / PER_PAGE));
     if (currentPage > totalPages) currentPage = totalPages;
 
-    document.getElementById("result-count").textContent = `全 ${total} 件の口コミ`;
+    document.getElementById("result-count").textContent = `全 ${total.toLocaleString("ja-JP")} 件`;
 
     const container = document.getElementById("review-list");
     const empty = document.getElementById("empty-state");
@@ -163,77 +349,56 @@ document.addEventListener("DOMContentLoaded", () => {
 
     empty.classList.add("hidden");
     const start = (currentPage - 1) * PER_PAGE;
-    const pageItems = list.slice(start, start + PER_PAGE);
-    container.innerHTML = pageItems.map(renderReviewCard).join("");
+    container.innerHTML = list
+      .slice(start, start + PER_PAGE)
+      .map(renderProductCard)
+      .join("");
     renderPagination(totalPages);
   }
 
-  searchInput.addEventListener("input", () => {
+  function resetFilters() {
+    searchQuery = "";
+    sortSelect.value = "recommended";
+    proofCheckbox.checked = false;
+    selectedCategories.clear();
+    selectedRating = "";
+    selectedReviewCount = "";
+    document.querySelectorAll('[data-filter="category"]').forEach((el) => {
+      el.checked = false;
+    });
+    document.querySelector('input[name="rating-filter"][value=""]').checked = true;
+    document.querySelector('input[name="review-count-filter"][value=""]').checked = true;
+    syncCategoryCheckboxes();
     currentPage = 1;
     render();
-  });
-  genreSelect.addEventListener("change", () => {
-    currentPage = 1;
-    render();
-  });
+  }
+
   sortSelect.addEventListener("change", () => {
     currentPage = 1;
     render();
   });
 
-  document.getElementById("reset-filters").addEventListener("click", () => {
-    searchInput.value = "";
-    genreSelect.value = "all";
-    sortSelect.value = "date-new";
+  document.getElementById("filter-submit").addEventListener("click", () => {
+    readFiltersFromUI();
     currentPage = 1;
     render();
+    scrollToResults();
+    if (filterPanel.classList.contains("open")) {
+      filterPanel.classList.remove("open");
+      filterToggle.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  document.getElementById("filter-clear").addEventListener("click", resetFilters);
+  document.getElementById("reset-filters").addEventListener("click", resetFilters);
+
+  filterToggle.addEventListener("click", () => {
+    const open = filterPanel.classList.toggle("open");
+    filterToggle.setAttribute("aria-expanded", open ? "true" : "false");
   });
 
   render();
 });
-
-/** 表示用に口コミリストを拡張（商品ごとに複数口コミを生成） */
-function buildReviewList() {
-  const items = [];
-  const genders = ["男性", "女性"];
-  const periods = ["2ヶ月", "3ヶ月", "4ヶ月", "6ヶ月", "1年"];
-
-  REVIEWS.forEach((r, i) => {
-    const product = getProductById(r.productId);
-    if (!product) return;
-    items.push({
-      ...r,
-      product,
-      gender: r.gender || genders[i % 2],
-      studyPeriod: r.studyPeriod || periods[i % periods.length],
-    });
-  });
-
-  PRODUCTS.forEach((p, pi) => {
-    const count = items.filter((x) => x.productId === p.id).length;
-    for (let j = count; j < 3; j++) {
-      const idx = pi * 3 + j;
-      items.push({
-        id: `gen-${p.id}-${j}`,
-        productId: p.id,
-        product: p,
-        userName: `匿名ユーザー${String.fromCharCode(65 + (idx % 26))}`,
-        age: ["20代", "30代", "40代"][j % 3],
-        gender: genders[idx % 2],
-        rating: Math.min(5, Math.max(3, p.averageRating + (j - 1) * 0.3)),
-        date: `2026-0${((pi + j) % 5) + 1}-${10 + j}`,
-        title: `${p.instructor}の講座を受講しました`,
-        content: p.description,
-        purchasePrice: p.price,
-        pros: ["内容が分かりやすい", "実践的"],
-        cons: [],
-        studyPeriod: periods[idx % periods.length],
-      });
-    }
-  });
-
-  return items;
-}
 
 function getPageNumbers(current, total) {
   if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);

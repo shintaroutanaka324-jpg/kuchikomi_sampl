@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>削除依頼 | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content">
+    <div class="container">
+      <div class="page-inner page-inner--medium">
+        <div class="page-header text-center">
+          <h1>削除依頼</h1>
+          <p style="color:var(--gray-600)">権利侵害・削除依頼ポリシー</p>
+        </div>
+
+        <article class="card card-body legal-prose" style="margin-bottom:1.25rem">
+          <p>カウマエでは、利用者の口コミによる情報共有を大切にしています。</p>
+          <p>一方で、事業者様および第三者の権利保護にも十分配慮しています。</p>
+
+          <h2>削除依頼について</h2>
+          <p>以下に該当する場合、削除依頼を受け付けています。</p>
+          <ul>
+            <li>名誉毀損</li>
+            <li>プライバシー侵害</li>
+            <li>著作権侵害</li>
+            <li>商標権侵害</li>
+            <li>個人情報掲載</li>
+            <li>虚偽情報</li>
+            <li>その他法令違反</li>
+          </ul>
+
+          <h2>依頼時に必要な情報</h2>
+          <ul>
+            <li>氏名または法人名</li>
+            <li>対象ページURL</li>
+            <li>問題となる箇所</li>
+            <li>権利侵害の内容</li>
+            <li>削除を求める理由</li>
+            <li>本人確認資料</li>
+          </ul>
+
+          <h2>審査について</h2>
+          <p>当サイトは中立的な立場で内容を確認します。</p>
+          <p>削除依頼があった場合でも、直ちに削除を行うものではありません。</p>
+          <p>投稿者への確認や事実関係の調査を行う場合があります。</p>
+
+          <h2>削除対象となる例</h2>
+          <ul>
+            <li>事実確認が困難な断定的表現</li>
+            <li>個人情報の掲載</li>
+            <li>侮辱目的の投稿</li>
+            <li>虚偽の内容</li>
+          </ul>
+
+          <h2>削除対象とならない例</h2>
+          <ul>
+            <li>利用者の感想</li>
+            <li>主観的評価</li>
+            <li>サービス利用体験に基づく意見</li>
+          </ul>
+
+          <h2>免責事項</h2>
+          <p>口コミは利用者個人の意見であり、当サイトの見解を示すものではありません。</p>
+          <p>当サイトは口コミ内容の真実性を保証するものではありません。</p>
+
+          <h2>お問い合わせ</h2>
+          <p>削除依頼は以下のフォーム、または<a href="contact.html">お問い合わせフォーム</a>よりご連絡ください。内容確認後、順次対応いたします。</p>
+        </article>
+
+        <form id="deletion-form" class="card card-body">
+          <h2 class="legal-form-title">削除依頼フォーム</h2>
+          <div class="form-group">
+            <label class="form-label" for="name">氏名または法人名 *</label>
+            <input type="text" class="form-input" id="name" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">メールアドレス *</label>
+            <input type="email" class="form-input" id="email" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="url">対象ページURL *</label>
+            <input type="url" class="form-input" id="url" placeholder="https://" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="type">依頼種別 *</label>
+            <select class="select" id="type" required>
+              <option value="">選択してください</option>
+              <option value="defamation">名誉毀損</option>
+              <option value="privacy">プライバシー侵害</option>
+              <option value="copyright">著作権侵害</option>
+              <option value="trademark">商標権侵害</option>
+              <option value="personal-info">個人情報掲載</option>
+              <option value="false-info">虚偽情報</option>
+              <option value="other">その他法令違反</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="message">問題となる箇所・削除を求める理由 *</label>
+            <textarea class="form-textarea" id="message" required rows="8" placeholder="権利侵害の内容、削除を求める理由を具体的にご記入ください"></textarea>
+          </div>
+          <button type="submit" class="btn btn-trust btn-block btn-lg">送信する</button>
+        </form>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      App.renderBreadcrumb([
+        { label: "トップ", path: "index.html" },
+        { label: "削除依頼" },
+      ]);
+
+      document.getElementById("deletion-form").addEventListener("submit", (e) => {
+        e.preventDefault();
+        App.showToast("削除依頼を送信しました。内容確認後、順次対応いたします。");
+        e.target.reset();
+      });
+    });
+  </script>
+</body>
+</html>

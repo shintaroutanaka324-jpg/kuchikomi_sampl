@@ -3,250 +3,192 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="オンライン学習・情報サービスの口コミ比較サイト。実際の購入者のリアルな口コミで、本当に価値ある学びを見つけよう。" />
-  <title>口コミサイト | Open e-Learning</title>
+  <meta name="description" content="カウマエは、情報商材・オンライン講座・コーチングの購入前口コミレポート。実際の購入者の評価で失敗を防ぐ。" />
+  <title>購入前口コミレビュー | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body class="page-home">
   <div id="site-header"></div>
 
   <main>
-    <!-- Hero -->
-    <section class="hero-top">
-      <div class="container hero-layout">
-        <div class="hero-main">
-          <div class="hero-text">
-            <h1>学びを選ぶ、<br />未来が広がる。</h1>
-            <p class="lead">
-              Open e-Learningは、オンライン学習・情報サービスの口コミ比較サイトです。
-              実際に購入した人のリアルな声で、あなたに合ったサービスを見つけましょう。
-            </p>
-            <div class="hero-actions">
-              <a href="submit-review.html" class="btn btn-primary btn-lg">✏️ 口コミを投稿する</a>
-              <a href="reviews.html" class="btn btn-outline btn-lg">🔍 サービスを探す</a>
+    <!-- 1. ファーストビュー（検索主役） -->
+    <section class="hero-search-section hero-search-section--search-first hero-search-section--with-visual">
+      <div class="hero-visual-banner" aria-hidden="true">
+        <img
+          src="images/hero-visual.png"
+          alt=""
+          width="1920"
+          height="1080"
+          loading="eager"
+          decoding="async"
+        />
+        <div class="hero-visual-banner-overlay"></div>
+      </div>
+      <div class="container hero-search-container">
+        <div class="hero-search-flow">
+          <div class="hero-fv-card">
+            <header class="hero-search-head">
+              <h1>購入前に、<span class="text-trust">本音の口コミ</span>を確認する</h1>
+              <p class="hero-search-desc">
+                オンライン講座・コーチング・情報商材・SNS販売のサービスについて、
+                購入者のリアルな口コミで申し込み前の失敗を防ぎます。
+              </p>
+            </header>
+
+            <div class="hero-search-hero">
+              <form class="hero-search-form hero-search-form--prominent" id="hero-search-form" role="search">
+                <label class="sr-only" for="hero-search-input">サービス名・講師名で検索</label>
+                <div class="hero-search-input-wrap hero-search-input-wrap--prominent">
+                  <svg class="hero-search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  <input
+                    type="search"
+                    id="hero-search-input"
+                    class="hero-search-input"
+                    placeholder="サービス名・講師名・SNSアカウント名で検索"
+                    autocomplete="off"
+                  />
+                  <button type="submit" class="hero-search-submit">口コミを検索</button>
+                </div>
+                <p class="hero-search-hint" id="hero-search-hint">例：○○コーチ / ○○スクール / ○○塾 / ○○アカデミー</p>
+              </form>
+            </div>
+
+            <div class="hero-fv-trending trending-search trending-search--in-card trending-search--row4" id="home-trending-wrap">
+              <p class="trending-search-heading"><span class="trending-fire" aria-hidden="true">🔥</span> 今話題</p>
+              <div class="trending-tags" id="home-trending"></div>
             </div>
           </div>
-          <div class="hero-image">
-            <img
-              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=800&h=600&fit=crop"
-              alt="オンラインで学ぶ人々"
-              loading="eager"
-            />
+
+          <aside class="hero-about-promo" aria-labelledby="platform-about-title">
+            <div class="hero-about-promo-head">
+              <p class="hero-about-promo-badge">購入前の口コミ検索サイト</p>
+              <h2 id="platform-about-title" class="hero-about-promo-title">
+                カウマエ<span class="hero-about-promo-title-sub">とは</span>
+              </h2>
+            </div>
+            <div class="hero-about-promo-body">
+              <div class="hero-about-promo-copy">
+                <p class="hero-about-promo-lead">
+                  高額な情報商材・オンライン講座・コーチングの「通信簿」を集める<strong>口コミレポートサイト</strong>です。
+                </p>
+                <p class="hero-about-promo-desc">
+                  SNSやLPだけでは分からない受講者のリアルな体験談を集め、購入前の意思決定をサポートします。
+                </p>
+              </div>
+              <div class="hero-about-promo-pains">
+                <p class="hero-about-promo-pains-label">こんな悩みはありませんか？</p>
+                <ul class="hero-about-promo-pains-list">
+                  <li>
+                    <span class="hero-about-promo-pain-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+                    </span>
+                    <span>口コミが見つからない</span>
+                  </li>
+                  <li>
+                    <span class="hero-about-promo-pain-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10v12"/><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/></svg>
+                    </span>
+                    <span>SNSでは良いことしか書かれていない</span>
+                  </li>
+                  <li>
+                    <span class="hero-about-promo-pain-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </span>
+                    <span>高額講座を買って後悔した</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. 最新口コミ（主役） -->
+    <section class="section section-reviews-primary">
+      <div class="container">
+        <div class="reviews-primary-head">
+          <div>
+            <h2 class="reviews-primary-title">最新の購入者口コミ</h2>
+            <p class="reviews-primary-count" id="home-review-count"></p>
+          </div>
+          <a href="reviews.html" class="btn btn-trust">すべての口コミを見る</a>
+        </div>
+        <div class="reviews-carousel" id="home-reviews-carousel">
+          <button
+            type="button"
+            class="reviews-carousel-nav reviews-carousel-nav--prev"
+            id="home-reviews-prev"
+            aria-label="前の口コミ"
+            disabled
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg>
+          </button>
+          <div class="reviews-carousel-viewport">
+            <div class="reviews-carousel-track" id="home-reviews"></div>
+          </div>
+          <button
+            type="button"
+            class="reviews-carousel-nav reviews-carousel-nav--next"
+            id="home-reviews-next"
+            aria-label="次の口コミ"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. 購入証明バッジ -->
+    <section class="section-trust-strip">
+      <div class="container">
+        <h2 class="trust-strip-title">購入証明バッジについて</h2>
+        <p class="trust-strip-lead">
+          購入証明の提出は<strong>任意</strong>です。領収書・決済画面などを提出いただいた口コミに、
+          「購入証明済み」バッジが付きます。本人確認などの追加認証はありません。
+        </p>
+        <div class="trust-badge-showcase">
+          <div class="trust-badge-lg trust-badge--purchase">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>
+            <span>購入証明済み</span>
+            <small>購入証明を提出した口コミ</small>
           </div>
         </div>
+        <ul class="trust-strip-points">
+          <li>バッジのない口コミも掲載されます</li>
+          <li>購入証明はモザイク処理され、氏名・住所・電話番号・メールアドレスなどは公開されません</li>
+          <li>口コミ本文は匿名（ニックネーム）で公開されます</li>
+        </ul>
+        <p class="trust-strip-note"><a href="submit-guidelines.html">口コミ投稿ガイドライン</a> · <a href="faq.html#badges">Q&amp;A</a></p>
+      </div>
+    </section>
 
-        <aside class="hero-sidebar">
-          <div class="widget">
-            <h3 class="widget-title">Open e-Learningとは？</h3>
-            <p class="widget-desc">
-              怪しい情報商材に騙されないため、購入者の本音口コミを集めたプラットフォームです。
-            </p>
-            <ul class="widget-list">
-              <li>
-                <span class="widget-icon">👥</span>
-                <span>実際の購入者のみが口コミを投稿</span>
-              </li>
-              <li>
-                <span class="widget-icon">🛡️</span>
-                <span>5項目の詳細評価で透明性を確保</span>
-              </li>
-              <li>
-                <span class="widget-icon">⭐</span>
-                <span>口コミ投稿または月額880円で1ヶ月閲覧可能</span>
-              </li>
+    <!-- 4. カテゴリー（コンパクト） -->
+    <section class="section section-categories-compact">
+      <div class="container">
+        <h2 class="section-title-left section-title-sm">カテゴリから口コミを探す</h2>
+        <div class="category-chips" id="home-categories"></div>
+      </div>
+    </section>
+
+    <!-- 5. 口コミ投稿CTA -->
+    <section class="section-post-cta section-post-cta--final">
+      <div class="container">
+        <div class="post-cta-banner post-cta-banner--strong">
+          <div class="post-cta-copy">
+            <p class="post-cta-eyebrow">購入者のあなたへ</p>
+            <h2>あなたの口コミが次の受講者の判断材料になる</h2>
+            <ul class="post-cta-benefits">
+              <li><strong>口コミを投稿すると</strong> — すべての口コミを閲覧できます</li>
+              <li><strong>本音の口コミを増やして</strong> — 納得できるサービス選びを支えよう</li>
+              <li>購入後の「思っていたのと違う」を減らそう</li>
             </ul>
           </div>
-          <div class="widget">
-            <h3 class="widget-title">かんたん3ステップで選べる</h3>
-            <div class="widget-steps">
-              <div class="step"><span class="step-num">01</span><span>サービスを検索</span></div>
-              <div class="step"><span class="step-num">02</span><span>口コミを読む</span></div>
-              <div class="step"><span class="step-num">03</span><span>納得して申し込む</span></div>
-            </div>
-          </div>
-          <div class="widget widget-cta">
-            <p style="font-size:0.8125rem;margin-bottom:0.75rem;font-weight:600">さっそく口コミを投稿しよう</p>
-            <a href="submit-review.html" class="btn btn-primary btn-block">口コミを投稿する</a>
-          </div>
-        </aside>
-      </div>
-    </section>
-
-    <!-- Categories -->
-    <section class="section">
-      <div class="container">
-        <div class="section-head">
-          <h2>人気のカテゴリから探す</h2>
-          <p>興味のあるジャンルから情報サービスを探せます</p>
-        </div>
-        <div class="category-row" id="home-categories"></div>
-        <p class="text-center mt-6">
-          <a href="reviews.html" class="btn btn-outline">口コミ一覧を見る</a>
-        </p>
-      </div>
-    </section>
-
-    <!-- Recommended services -->
-    <section class="section">
-      <div class="container">
-        <div class="section-head flex justify-between items-center flex-wrap gap-4">
-          <div>
-            <h2>おすすめのオンライン学習サービス</h2>
-            <p>評価の高い人気サービスをピックアップ</p>
-          </div>
-          <a href="reviews.html" class="btn btn-outline btn-sm">一覧を見る →</a>
-        </div>
-        <div class="services-scroll" id="home-services"></div>
-      </div>
-    </section>
-
-    <!-- Testimonials -->
-    <section class="section section-alt">
-      <div class="container">
-        <div class="section-head">
-          <h2>実際の利用者の声</h2>
-          <p>購入者のリアルな体験談</p>
-        </div>
-        <div class="testimonial-grid" id="home-reviews"></div>
-        <p class="text-center mt-8">
-          <a href="reviews.html" class="btn btn-outline">もっと口コミを見る</a>
-        </p>
-      </div>
-    </section>
-
-    <!-- こんな悩みを解決します -->
-    <section class="section">
-      <div class="container content-narrow">
-        <h2 class="section-title">こんな悩みを解決します</h2>
-        <div class="grid-3">
-          <article class="card card-body text-center">
-            <div class="icon-circle red">💰</div>
-            <h3 class="card-title">高額商材の不安</h3>
-            <p class="card-desc">数万円〜数十万円する情報商材。本当に価値があるのか購入前に知りたい。</p>
-          </article>
-          <article class="card card-body text-center">
-            <div class="icon-circle orange">📢</div>
-            <h3 class="card-title">誇大広告を見抜きたい</h3>
-            <p class="card-desc">派手な宣伝文句の裏側。実際の成果を購入者の声で確認したい。</p>
-          </article>
-          <article class="card card-body text-center">
-            <div class="icon-circle yellow">⭐</div>
-            <h3 class="card-title">リアルな評価が欲しい</h3>
-            <p class="card-desc">公式サイトだけでなく、実際の購入者のバランスの取れた評価が欲しい。</p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- ご利用の流れ -->
-    <section class="section section-alt">
-      <div class="container content-narrow">
-        <div class="section-head text-center">
-          <h2>ご利用の流れ</h2>
-        </div>
-        <div class="steps-flow">
-          <div class="step-card">
-            <div class="step-circle">📝</div>
-            <h3>会員登録</h3>
-            <p>無料でアカウントを作成</p>
-          </div>
-          <div class="step-card">
-            <div class="step-circle">🔍</div>
-            <h3>サービスを探す</h3>
-            <p>カテゴリ・キーワードで検索</p>
-          </div>
-          <div class="step-card">
-            <div class="step-circle">📖</div>
-            <h3>口コミを読む</h3>
-            <p>詳細評価で比較検討</p>
-          </div>
-          <div class="step-card">
-            <div class="step-circle">✅</div>
-            <h3>サービスを選ぶ</h3>
-            <p>納得して申し込み</p>
+          <div class="post-cta-actions">
+            <a href="submit-review.html" class="btn btn-trust btn-lg btn-block">無料で口コミを投稿する</a>
+            <p class="post-cta-note">匿名可 · 購入記録を提出すると「購入証明済み」バッジが付きます</p>
           </div>
         </div>
-      </div>
-    </section>
-
-    <!-- 料金プラン -->
-    <section class="section">
-      <div class="container content-narrow">
-        <h2 class="section-title">料金プラン</h2>
-        <p class="section-subtitle">無料でも基本情報は確認できます。全文閲覧は口コミ投稿または月額プランでご利用いただけます</p>
-        <div class="grid-3 pricing-grid">
-          <article class="card pricing-card">
-            <div class="card-body">
-              <h3 class="card-title" style="font-size:1.25rem">無料プラン</h3>
-              <div class="price">¥0</div>
-              <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">会員登録不要で一部機能を利用</p>
-              <ul class="feature-list">
-                <li><span class="check gray">✓</span> 総合評価（星の数）の閲覧</li>
-                <li><span class="check gray">✓</span> サービス・口コミの検索</li>
-                <li><span class="check gray">✓</span> 口コミ本文の一部プレビュー</li>
-                <li><span class="check gray">✓</span> 評価の内訳（概要のみ）</li>
-              </ul>
-              <a href="reviews.html" class="btn btn-outline btn-block">無料で見る</a>
-            </div>
-          </article>
-          <article class="card pricing-card featured">
-            <span class="badge-recommended">おすすめ</span>
-            <div class="card-body">
-              <h3 class="card-title" style="font-size:1.25rem">口コミ投稿プラン</h3>
-              <div class="price">¥0</div>
-              <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">口コミを1件投稿で解放</p>
-              <ul class="feature-list">
-                <li><span class="check">✓</span> <strong>1か月間、すべての口コミ閲覧可能</strong></li>
-                <li><span class="check">✓</span> <strong>口コミ本文・詳細評価コメント</strong></li>
-                <li><span class="check">✓</span> <strong>購入者の良い点・悪い点</strong></li>
-                <li><span class="check">✓</span> <strong>投稿は無料</strong></li>
-              </ul>
-              <a href="submit-review.html" class="btn btn-primary btn-block">口コミを投稿する</a>
-            </div>
-          </article>
-          <article class="card pricing-card">
-            <div class="card-body">
-              <h3 class="card-title" style="font-size:1.25rem">月額プラン</h3>
-              <div class="price">¥880<span style="font-size:1rem;font-weight:500;color:var(--gray-500)">/月</span></div>
-              <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">1か月ごとの課金</p>
-              <ul class="feature-list">
-                <li><span class="check">✓</span> <strong>1か月間、すべての口コミ閲覧可能</strong></li>
-                <li><span class="check">✓</span> <strong>口コミ投稿なしで利用可能</strong></li>
-                <li><span class="check">✓</span> <strong>詳細評価コメントの閲覧</strong></li>
-                <li><span class="check">✓</span> <strong>まずはお試しに</strong></li>
-              </ul>
-              <a href="login.html" class="btn btn-outline btn-block">月額880円で始める</a>
-            </div>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="section">
-      <div class="container" style="max-width:40rem;margin:0 auto">
-        <h2 class="section-title">よくある質問</h2>
-        <div id="home-faq">
-          <div class="faq-item">
-            <button type="button" class="faq-question">本当に無料で使えますか？<span class="faq-chevron">▼</span></button>
-            <div class="faq-answer">無料プランでは星評価や検索など一部機能をご利用いただけます。すべての口コミを読むには、口コミを1件投稿するか、月額880円プランをお選びください。いずれも1か月間、全文閲覧が可能です。</div>
-          </div>
-          <div class="faq-item">
-            <button type="button" class="faq-question">口コミは匿名で投稿できますか？<span class="faq-chevron">▼</span></button>
-            <div class="faq-answer">はい、匿名での投稿が可能です。個人情報が公開されることはありません。</div>
-          </div>
-          <div class="faq-item">
-            <button type="button" class="faq-question">どんな商品の口コミを投稿できますか？<span class="faq-chevron">▼</span></button>
-            <div class="faq-answer">YouTubeやSNSで販売されているオンライン情報サービス全般が対象です。</div>
-          </div>
-          <div class="faq-item">
-            <button type="button" class="faq-question">口コミの信頼性はどのように確保していますか？<span class="faq-chevron">▼</span></button>
-            <div class="faq-answer">実際に購入した方のみが投稿できる仕組みを採用し、運営が内容を確認しています。</div>
-          </div>
-        </div>
-        <p class="text-center mt-6">
-          <a href="faq.html" class="btn btn-ghost">Q&Aをもっと見る</a>
-        </p>
       </div>
     </section>
   </main>

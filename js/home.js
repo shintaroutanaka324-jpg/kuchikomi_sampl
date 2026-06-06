@@ -1,91 +1,180 @@
-const CATEGORY_IMAGES = {
-  "web-marketing":
-    "https://images.unsplash.com/photo-1683721003111-070bcc053d8b?w=200&h=200&fit=crop",
-  "ai-it-skills":
-    "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=200&h=200&fit=crop",
-  "romance-marriage":
-    "https://images.unsplash.com/photo-1516589178581-6cd7833ae3b2?w=200&h=200&fit=crop",
-  "money-asset-building":
-    "https://images.unsplash.com/photo-1604594849809-dfedbc827105?w=200&h=200&fit=crop",
-  "side-business-independence":
-    "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=200&h=200&fit=crop",
-  "english-language":
-    "https://images.unsplash.com/photo-1546410531-bb4caa6e8662?w=200&h=200&fit=crop",
-};
+const SEARCH_HINTS = [
+  "例：○○コーチ / ○○スクール / ○○塾",
+  "サービス名で検索",
+  "講師名で検索",
+  "SNSアカウント名で検索",
+];
 
-const TAG_MAP = {
-  "web-marketing": ["#初心者OK", "#実践的"],
-  "ai-it-skills": ["#最新技術", "#スキルアップ"],
-  "romance-marriage": ["#恋愛", "#コスパ良"],
-  "money-asset-building": ["#投資", "#資産形成"],
-  "sales-business-skills": ["#ビジネス", "#コーチング"],
-  "side-business-independence": ["#副業", "#独立"],
-};
+function renderStarsInline(rating) {
+  const full = Math.round(rating);
+  let html = "";
+  for (let i = 1; i <= 5; i++) {
+    html += `<span class="${i <= full ? "" : "empty"}">★</span>`;
+  }
+  return html;
+}
 
-const TESTIMONIAL_THEMES = ["t-blue", "t-green", "t-yellow"];
+const HOME_REVIEWS_PER_PAGE = 3;
 
 document.addEventListener("DOMContentLoaded", () => {
-  App.initFaqAccordion(".faq-question");
-
-  renderCategories();
-  renderServices();
+  initHeroSearch();
+  renderTrending();
   renderReviews();
+  renderCategories();
+  renderReviewCountLabel();
 });
+
+function renderReviewCountLabel() {
+  const el = document.getElementById("home-review-count");
+  if (!el) return;
+  el.textContent = "購入証明を提出した口コミには「購入証明済み」バッジが付きます（提出は任意）";
+}
+
+function initHeroSearch() {
+  const form = document.getElementById("hero-search-form");
+  const input = document.getElementById("hero-search-input");
+  const hint = document.getElementById("hero-search-hint");
+  if (!form || !input) return;
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const q = input.value.trim();
+    if (q) window.location.href = `reviews.html?search=${encodeURIComponent(q)}`;
+    else input.focus();
+  });
+
+  if (hint && SEARCH_HINTS.length > 1) {
+    let i = 0;
+    setInterval(() => {
+      i = (i + 1) % SEARCH_HINTS.length;
+      hint.textContent = SEARCH_HINTS[i];
+    }, 4000);
+  }
+}
+
+function renderTrending() {
+  const el = document.getElementById("home-trending");
+  if (!el || typeof TRENDING_SEARCHES === "undefined") return;
+
+  const items = TRENDING_SEARCHES.slice(0, 4);
+  el.innerHTML = items
+    .map((t) => {
+      const hint = t.hint ? `（${App.escapeHtml(t.hint)}）` : "";
+      return `<a href="reviews.html?search=${encodeURIComponent(t.query)}" class="trending-tag trending-tag--rich trending-tag--cell">${App.escapeHtml(t.label)}<span class="trending-tag-hint">${hint}</span></a>`;
+    })
+    .join("");
+}
 
 function renderCategories() {
   const el = document.getElementById("home-categories");
   if (!el) return;
 
-  const items = CATEGORIES.slice(0, 6);
-  el.innerHTML = items
-    .map((c) => {
-      const img =
-        CATEGORY_IMAGES[c.value] ||
-        "https://images.unsplash.com/photo-1619852182277-79aa23f82c8e?w=200&h=200&fit=crop";
-      return `
-        <a href="reviews.html?genre=${c.value}" class="category-tile">
-          <img src="${img}" alt="${App.escapeHtml(c.label)}" loading="lazy" />
-          <span>${App.escapeHtml(c.label)}</span>
-        </a>`;
-    })
-    .join("");
+  el.innerHTML = CATEGORIES.map(
+    (c) =>
+      `<a href="reviews.html?genre=${c.value}" class="category-chip">${App.escapeHtml(c.label)}</a>`
+  ).join("");
 }
 
-function renderServices() {
-  const el = document.getElementById("home-services");
-  if (!el) return;
+function renderReviewCardHtml(r, productMap) {
+  const product = productMap[r.productId];
+  const rating = r.rating || 4;
+  const serviceName = product ? product.title : "（サービス名非公開）";
+  const category = product ? getCategoryLabel(product.category) : "—";
+  const instructor = product ? product.instructor : "";
+  const detailUrl = product ? `review-detail.html?id=${product.id}` : "reviews.html";
+  const badges = renderReviewTrustBadges(r, { large: true });
+  const noBadgeNote = hasAnyTrustBadge(r)
+    ? ""
+    : `<p class="review-no-badge">購入記録未提出の口コミ</p>`;
 
-  el.innerHTML = PRODUCTS.map((p) => {
-    const tags = TAG_MAP[p.category] || ["#口コミ多数"];
-    const brand = p.instructor.split(/[\s・]/)[0] || p.instructor;
-    return `
-      <a href="review-detail.html?id=${p.id}" class="service-card">
-        <div class="brand">${App.escapeHtml(brand)}</div>
-        <h3>${App.escapeHtml(p.title)}</h3>
-        <p class="meta">${getCategoryLabel(p.category)}</p>
-        <p class="rating"><span>★</span> ${p.averageRating.toFixed(1)} <span style="font-weight:400;color:var(--gray-500)">(${p.reviewCount}件)</span></p>
-        <div class="tag-row">${tags.map((t) => `<span class="tag">${t}</span>`).join("")}</div>
-      </a>`;
-  }).join("");
+  return `
+      <article class="review-feed-card review-feed-card--primary">
+        <header class="review-feed-header">
+          <div class="review-feed-rating-large">
+            <span class="rating-big">${rating.toFixed(1)}</span>
+            <span class="stars">${renderStarsInline(rating)}</span>
+          </div>
+          <time class="review-feed-date" datetime="${App.escapeHtml(r.date)}">${formatDateJa(r.date)}</time>
+        </header>
+        ${badges}
+        ${noBadgeNote}
+        <a href="${detailUrl}" class="review-feed-service-name review-feed-service-name--lg">${App.escapeHtml(serviceName)}</a>
+        ${instructor ? `<p class="review-feed-instructor">講師・発信者：${App.escapeHtml(instructor)} · ${App.escapeHtml(category)}</p>` : `<p class="review-feed-instructor">${App.escapeHtml(category)}</p>`}
+        <h3 class="review-feed-title review-feed-title--lg">${App.escapeHtml(r.title)}</h3>
+        <p class="review-feed-body review-feed-body--lg">${App.escapeHtml(r.content)}</p>
+        <footer class="review-feed-footer">
+          <span class="review-feed-user">${App.escapeHtml(r.userName)}（${r.age}）</span>
+          <a href="${detailUrl}" class="review-feed-link">続きを読む →</a>
+        </footer>
+      </article>`;
 }
 
 function renderReviews() {
-  const el = document.getElementById("home-reviews");
-  if (!el) return;
+  const track = document.getElementById("home-reviews");
+  const carousel = document.getElementById("home-reviews-carousel");
+  if (!track || typeof REVIEWS === "undefined") return;
 
   const productMap = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
+  const sorted = [...REVIEWS].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const items = sorted.slice(0, 6);
+  const pages = [];
 
-  el.innerHTML = REVIEWS.slice(0, 3).map((r, i) => {
-    const product = productMap[r.productId];
-    const theme = TESTIMONIAL_THEMES[i % 3];
-    return `
-      <article class="testimonial-card ${theme}">
-        <div class="quote-head">${App.escapeHtml(r.title)}</div>
-        <p class="quote-body line-clamp-4">${App.escapeHtml(r.content)}</p>
-        <div class="quote-user">
-          <span class="quote-avatar">👤</span>
-          <span>${App.escapeHtml(r.userName)}（${r.age}）${product ? " · " + App.escapeHtml(product.title.slice(0, 20)) + "…" : ""}</span>
-        </div>
-      </article>`;
-  }).join("");
+  for (let i = 0; i < items.length; i += HOME_REVIEWS_PER_PAGE) {
+    pages.push(items.slice(i, i + HOME_REVIEWS_PER_PAGE));
+  }
+
+  if (pages.length === 0) {
+    track.innerHTML = "";
+    return;
+  }
+
+  track.innerHTML = pages
+    .map(
+      (page) =>
+        `<div class="reviews-carousel-slide review-feed review-feed--primary">${page
+          .map((r) => renderReviewCardHtml(r, productMap))
+          .join("")}</div>`
+    )
+    .join("");
+
+  if (carousel) {
+    initReviewsCarousel(carousel, track, pages.length);
+  }
+}
+
+function initReviewsCarousel(carousel, track, pageCount) {
+  const prevBtn = document.getElementById("home-reviews-prev");
+  const nextBtn = document.getElementById("home-reviews-next");
+  if (!prevBtn || !nextBtn) return;
+
+  let pageIndex = 0;
+
+  const update = () => {
+    track.style.transform = `translateX(-${pageIndex * 100}%)`;
+    prevBtn.disabled = pageIndex === 0;
+    nextBtn.disabled = pageIndex >= pageCount - 1;
+    carousel.classList.toggle("reviews-carousel--end", pageIndex >= pageCount - 1);
+  };
+
+  prevBtn.onclick = () => {
+    if (pageIndex > 0) {
+      pageIndex -= 1;
+      update();
+    }
+  };
+
+  nextBtn.onclick = () => {
+    if (pageIndex < pageCount - 1) {
+      pageIndex += 1;
+      update();
+    }
+  };
+
+  if (pageCount <= 1) {
+    nextBtn.disabled = true;
+    prevBtn.disabled = true;
+    carousel.classList.add("reviews-carousel--single");
+  }
+
+  update();
 }

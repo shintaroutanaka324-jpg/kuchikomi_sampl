@@ -1,0 +1,1452 @@
+/* ============================================================
+   サービス詳細 pd2 — 購入前比較検討ページ
+   ============================================================ */
+
+.page-product-detail-v2 .page-content {
+  background: var(--gray-50);
+  padding-bottom: 5rem;
+}
+
+.page-product-detail-v2 .pd-page-wrap .container {
+  max-width: 76rem;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.pd2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* --- 共通ブロック --- */
+.pd2-block {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pd2-block-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  letter-spacing: -0.01em;
+}
+
+.pd2-block-lead {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  margin-top: 0.25rem;
+}
+
+/* --- ヒーロー --- */
+.pd2-hero {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pd2-hero-row {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 900px) {
+  .pd2-hero-row {
+    grid-template-columns: 10rem minmax(0, 1fr) 13rem;
+    gap: 1.5rem;
+    align-items: start;
+  }
+}
+
+.pd2-hero-banner {
+  position: relative;
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: #1e3a5f;
+}
+
+.pd2-hero-banner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd2-hero-banner-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(160deg, rgba(15, 40, 80, 0.65) 0%, transparent 70%);
+  display: flex;
+  align-items: flex-end;
+  padding: 0.6rem;
+}
+
+.pd2-hero-banner-cat {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.pd2-hero-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+}
+
+.pd2-tag {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.2rem 0.55rem;
+  border-radius: 4px;
+  background: var(--gray-100);
+  color: var(--gray-600);
+}
+
+.pd2-tag--link {
+  color: var(--trust-700);
+  background: var(--trust-50);
+}
+
+.pd2-hero-title {
+  font-size: clamp(1.25rem, 2.8vw, 1.6rem);
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  margin-bottom: 0.5rem;
+}
+
+.pd2-hero-rating {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.pd2-stars--hero {
+  font-size: 1.15rem;
+}
+
+.pd2-score {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--gray-900);
+}
+
+.pd2-score-max {
+  font-size: 0.8125rem;
+  color: var(--gray-400);
+}
+
+.pd2-review-link {
+  font-size: 0.8125rem;
+  color: var(--trust-600);
+  font-weight: 600;
+}
+
+.pd2-review-link:hover {
+  text-decoration: underline;
+}
+
+.pd2-keyinfo {
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.65rem 1rem;
+}
+
+@media (min-width: 640px) {
+  .pd2-keyinfo {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.pd2-keyinfo li {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.pd2-keyinfo-icon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.pd2-keyinfo-label {
+  font-size: 0.6875rem;
+  color: var(--gray-400);
+}
+
+.pd2-keyinfo-val {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-800);
+}
+
+.pd2-hero-provider {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  margin-bottom: 0.5rem;
+}
+
+.pd2-hero-desc {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.7;
+}
+
+.pd2-hero-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.pd2-fav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--gray-600);
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.pd2-fav-btn:hover,
+.pd2-fav-btn.is-active {
+  color: var(--trust-700);
+  border-color: var(--trust-200);
+  background: var(--trust-50);
+}
+
+.pd2-official-cta {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.85rem 1rem !important;
+  font-size: 0.875rem !important;
+  border-radius: var(--radius) !important;
+}
+
+.pd2-post-link {
+  font-size: 0.8125rem !important;
+  padding: 0.55rem 1rem !important;
+}
+
+.pd2-stars {
+  color: #f5a623;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+
+.pd2-stars .off {
+  color: var(--gray-200);
+}
+
+/* --- 購入判断サマリー --- */
+.pd2-summary-section {
+  margin-top: 0;
+}
+
+.pd2-summary-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.85rem;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .pd2-summary-cards {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 900px) {
+  .pd2-summary-cards {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+.pd2-summary-card {
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 1rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  text-align: center;
+}
+
+.pd2-summary-label {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.pd2-summary-value {
+  font-size: 1.125rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1.2;
+}
+
+.pd2-summary-value small {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.pd2-summary-value--sm {
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.pd2-summary-value--rating {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  font-size: 1.25rem;
+}
+
+.pd2-summary-value--level {
+  color: var(--trust-700);
+  font-size: 1.35rem;
+}
+
+/* --- AI口コミ要約 --- */
+.pd2-ai-section {
+  background: linear-gradient(160deg, #fff 0%, var(--trust-50) 100%);
+  border-color: var(--trust-100);
+}
+
+.pd2-ai-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.pd2-ai-badge {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--trust-600);
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.pd2-ai-meta {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-left: auto;
+}
+
+.pd2-ai-cols {
+  display: grid;
+  gap: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .pd2-ai-cols {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+.pd2-ai-col-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.pd2-ai-col--pro .pd2-ai-col-title {
+  color: var(--trust-800);
+}
+
+.pd2-ai-col--con .pd2-ai-col-title {
+  color: var(--gray-700);
+}
+
+.pd2-ai-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pd2-ai-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--gray-800);
+  line-height: 1.5;
+}
+
+.pd2-ai-mark {
+  flex-shrink: 0;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  border-radius: 50%;
+}
+
+.pd2-ai-mark--pro {
+  color: var(--trust-700);
+  background: var(--trust-100);
+}
+
+.pd2-ai-mark--con {
+  color: var(--gray-600);
+  background: var(--gray-200);
+}
+
+.pd2-ai-overall {
+  font-size: 0.875rem;
+  color: var(--gray-700);
+  line-height: 1.7;
+  padding: 0.85rem 1rem;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: var(--radius);
+  border: 1px solid var(--trust-100);
+  margin-bottom: 1.25rem;
+}
+
+.pd2-audience {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 640px) {
+  .pd2-audience {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+}
+
+.pd2-audience-card {
+  border-radius: var(--radius);
+  padding: 1.1rem 1.15rem;
+  border: 1px solid var(--gray-200);
+}
+
+.pd2-audience-card--ok {
+  background: #fff;
+  border-color: var(--trust-100);
+  border-left: 4px solid var(--trust-500);
+}
+
+.pd2-audience-card--ng {
+  background: #fff;
+  border-left: 4px solid var(--gray-300);
+}
+
+.pd2-audience-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+  color: var(--gray-900);
+}
+
+.pd2-audience-card ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pd2-audience-card li {
+  font-size: 0.8125rem;
+  color: var(--gray-700);
+  line-height: 1.55;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.pd2-audience-card--ok li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--trust-600);
+  font-weight: 700;
+}
+
+.pd2-audience-card--ng li::before {
+  content: "−";
+  position: absolute;
+  left: 0;
+  color: var(--gray-400);
+  font-weight: 700;
+}
+
+/* --- 2カラム --- */
+.pd2-body {
+  display: grid;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+@media (min-width: 1024px) {
+  .pd2-body {
+    grid-template-columns: minmax(0, 1fr) 18rem;
+    gap: 1.75rem;
+  }
+}
+
+.pd2-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-width: 0;
+}
+
+/* --- 5項目評価（大きく） --- */
+.pd2-radar-section {
+  border: 1px solid var(--trust-100);
+  background: linear-gradient(180deg, #fff 0%, var(--trust-50) 120%);
+}
+
+.pd2-radar-hero {
+  display: grid;
+  gap: 1.5rem;
+  align-items: center;
+  margin-top: 1.25rem;
+}
+
+@media (min-width: 720px) {
+  .pd2-radar-hero {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+}
+
+.pd2-radar-chart-lg svg {
+  width: 100%;
+  max-width: 22rem;
+  margin: 0 auto;
+  display: block;
+}
+
+.pd2-radar-grid {
+  fill: none;
+  stroke: var(--gray-200);
+  stroke-width: 1;
+}
+
+.pd2-radar-axis {
+  stroke: var(--gray-200);
+}
+
+.pd2-radar-area {
+  fill: rgba(16, 185, 129, 0.18);
+  stroke: none;
+}
+
+.pd2-radar-line {
+  fill: none;
+  stroke: var(--trust-500);
+  stroke-width: 2.5;
+}
+
+.pd2-radar-lbl {
+  font-size: 12px;
+  fill: var(--gray-700);
+  font-family: "Noto Sans JP", sans-serif;
+  font-weight: 600;
+}
+
+.pd2-radar-center {
+  font-size: 24px;
+  font-weight: 800;
+  fill: var(--trust-700);
+  font-family: "Noto Sans JP", sans-serif;
+}
+
+.pd2-radar-bars-lg {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.pd2-radar-bar-lg {
+  display: grid;
+  grid-template-columns: 5.5rem 1fr 2.5rem;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.pd2-radar-bar-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.pd2-radar-track {
+  height: 0.55rem;
+  background: var(--gray-200);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pd2-radar-track div {
+  height: 100%;
+  background: linear-gradient(90deg, var(--trust-500), var(--trust-600));
+  border-radius: 999px;
+}
+
+.pd2-radar-bar-val {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--trust-700);
+  text-align: right;
+}
+
+/* --- 口コミ一覧 --- */
+.pd2-reviews-section {
+  background: #fff;
+}
+
+.pd2-reviews-head {
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.pd2-reviews-head-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  margin-bottom: 0.2rem;
+}
+
+.pd2-reviews-head-row .pd2-block-title {
+  margin-bottom: 0;
+}
+
+.pd2-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.pd2-sort-label {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  white-space: nowrap;
+}
+
+.pd2-sort select {
+  font-family: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  padding: 0.25rem 1.5rem 0.25rem 0;
+  border: none;
+  background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 0 center;
+  appearance: none;
+  cursor: pointer;
+}
+
+.pd2-sort select:hover {
+  color: var(--trust-700);
+}
+
+.pd2-reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* 口コミカード（左：ユーザー / 右：本文） */
+.pd2-rc {
+  display: flex;
+  gap: 1.25rem;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.35rem 1.5rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pd2-rc.hidden {
+  display: none;
+}
+
+.pd2-rc-side {
+  flex: 0 0 5.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.45rem;
+}
+
+.pd2-rc-avatar {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  font-size: 1.35rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.pd2-rc-avatar--blue {
+  background: #dbeafe;
+  color: #2563eb;
+}
+
+.pd2-rc-avatar--rose {
+  background: #fce7f3;
+  color: #db2777;
+}
+
+.pd2-rc-demo {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-700);
+  line-height: 1.4;
+}
+
+.pd2-rc-badge {
+  font-size: 0.625rem;
+  font-weight: 700;
+  color: #fff;
+  background: #3b82f6;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  line-height: 1.3;
+}
+
+.pd2-rc-date {
+  font-size: 0.6875rem;
+  color: var(--gray-400);
+}
+
+.pd2-rc-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.pd2-rc-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.35rem;
+}
+
+.pd2-rc-rating-row strong {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--gray-900);
+}
+
+.pd2-rc-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.45;
+  margin-bottom: 0.85rem;
+}
+
+.pd2-rc-boxes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+}
+
+.pd2-rc-box {
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius);
+  border: 1px solid transparent;
+}
+
+.pd2-rc-box--pro {
+  background: #f0fdf4;
+  border-color: #dcfce7;
+}
+
+.pd2-rc-box--con {
+  background: #fef2f2;
+  border-color: #fee2e2;
+}
+
+.pd2-rc-box--learn {
+  background: #eff6ff;
+  border-color: #dbeafe;
+}
+
+.pd2-rc-box--recommend {
+  background: #fffbeb;
+  border-color: #fef3c7;
+}
+
+.pd2-rc-box-title {
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 0.3rem;
+}
+
+.pd2-rc-box--pro .pd2-rc-box-title {
+  color: #15803d;
+}
+
+.pd2-rc-box--con .pd2-rc-box-title {
+  color: #b91c1c;
+}
+
+.pd2-rc-box--learn .pd2-rc-box-title {
+  color: #1d4ed8;
+}
+
+.pd2-rc-box--recommend .pd2-rc-box-title {
+  color: #b45309;
+}
+
+.pd2-rc-box-text {
+  font-size: 0.8125rem;
+  color: var(--gray-800);
+  line-height: 1.65;
+}
+
+@media (max-width: 540px) {
+  .pd2-rc {
+    flex-direction: column;
+    gap: 0.85rem;
+  }
+
+  .pd2-rc-side {
+    flex-direction: row;
+    flex-wrap: wrap;
+    flex: none;
+    width: 100%;
+    justify-content: flex-start;
+    text-align: left;
+    gap: 0.5rem 0.75rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--gray-100);
+  }
+
+  .pd2-rc-date {
+    margin-left: auto;
+  }
+}
+
+.pd2-mosaic {
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+  min-height: 2.5rem;
+}
+
+.pd2-blur {
+  filter: blur(5px);
+  user-select: none;
+  pointer-events: none;
+  color: transparent;
+  text-shadow: 0 0 8px rgba(71, 85, 105, 0.45);
+}
+
+.pd2-mosaic-over {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(2px);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.pd2-rc-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding-top: 0.65rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.pd2-helpful {
+  font-family: inherit;
+  font-size: 0.75rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  color: var(--gray-700);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.pd2-helpful.is-voted {
+  border-color: var(--trust-200);
+  color: var(--trust-700);
+  background: var(--trust-50);
+}
+
+.pd2-rc-report {
+  font-family: inherit;
+  font-size: 0.6875rem;
+  color: var(--gray-400);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0.25rem;
+}
+
+.pd2-rc-report:hover {
+  color: var(--gray-600);
+}
+
+.pd2-unlock {
+  margin-top: 1.25rem;
+  text-align: center;
+  background: var(--trust-50);
+  border: 1px solid var(--trust-100);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.pd2-unlock-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+}
+
+.pd2-unlock-desc {
+  font-size: 0.8125rem;
+  color: var(--gray-600);
+  margin-bottom: 1rem;
+}
+
+.pd2-unlock-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.pd2-empty {
+  text-align: center;
+  padding: 2rem;
+  color: var(--gray-500);
+}
+
+/* --- 右サイドバー --- */
+.pd2-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 1024px) {
+  .pd2-sidebar {
+    position: sticky;
+    top: 5rem;
+  }
+}
+
+.pd2-side-card {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.15rem 1.2rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pd2-side-title {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.45rem;
+  border-bottom: 1px solid var(--gray-100);
+}
+
+.pd2-side-score-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.pd2-side-big {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  line-height: 1;
+}
+
+.pd2-stars--lg {
+  font-size: 1rem;
+}
+
+.pd2-side-count {
+  font-size: 0.75rem;
+  color: var(--gray-500);
+  margin-top: 0.15rem;
+}
+
+.pd2-star-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.pd2-star-bar-row {
+  display: grid;
+  grid-template-columns: 2rem 1fr 2rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.pd2-star-bar-label {
+  color: var(--gray-600);
+}
+
+.pd2-star-bar-track {
+  height: 0.45rem;
+  background: var(--gray-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pd2-star-bar-fill {
+  height: 100%;
+  background: #f5a623;
+  border-radius: 999px;
+}
+
+.pd2-star-bar-pct {
+  text-align: right;
+  color: var(--gray-500);
+  font-size: 0.6875rem;
+}
+
+.pd2-eval-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.pd2-eval-list li {
+  display: grid;
+  grid-template-columns: 5rem 1fr 1.75rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.pd2-eval-label {
+  color: var(--gray-600);
+}
+
+.pd2-eval-bar {
+  height: 0.4rem;
+  background: var(--gray-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pd2-eval-bar span {
+  display: block;
+  height: 100%;
+  background: var(--trust-500);
+  border-radius: 999px;
+}
+
+.pd2-eval-val {
+  font-weight: 700;
+  color: var(--trust-700);
+  text-align: right;
+}
+
+.pd2-side-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.pd2-side-list--check li {
+  font-size: 0.75rem;
+  color: var(--gray-700);
+  line-height: 1.5;
+  padding-left: 1rem;
+  position: relative;
+}
+
+.pd2-side-list--check li::before {
+  content: "✓";
+  position: absolute;
+  left: 0;
+  color: var(--trust-600);
+  font-weight: 700;
+}
+
+.pd2-side-text {
+  font-size: 0.8125rem;
+  color: var(--gray-700);
+  line-height: 1.6;
+}
+
+.pd2-side-opinions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.pd2-side-opinion-label {
+  display: block;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  margin-bottom: 0.35rem;
+}
+
+.pd2-side-opinion--pro .pd2-side-opinion-label {
+  color: var(--trust-700);
+}
+
+.pd2-side-opinion--con .pd2-side-opinion-label {
+  color: var(--gray-600);
+}
+
+.pd2-side-opinion ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pd2-side-opinion li {
+  font-size: 0.75rem;
+  color: var(--gray-700);
+  line-height: 1.45;
+  padding-left: 0.75rem;
+  position: relative;
+}
+
+.pd2-side-opinion li::before {
+  content: "・";
+  position: absolute;
+  left: 0;
+  color: var(--gray-400);
+}
+
+.pd2-age-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.pd2-age-row {
+  display: grid;
+  grid-template-columns: 2.5rem 1fr 2rem;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+}
+
+.pd2-age-label {
+  color: var(--gray-600);
+}
+
+.pd2-age-track {
+  height: 0.45rem;
+  background: var(--gray-100);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.pd2-age-fill {
+  height: 100%;
+  background: var(--trust-500);
+  border-radius: 999px;
+}
+
+.pd2-age-pct {
+  text-align: right;
+  color: var(--gray-500);
+  font-size: 0.6875rem;
+}
+
+.pd2-proof-ring {
+  text-align: center;
+  padding: 0.5rem 0;
+}
+
+.pd2-proof-pct {
+  display: block;
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--trust-700);
+  line-height: 1;
+}
+
+.pd2-proof-label {
+  font-size: 0.75rem;
+  color: var(--gray-600);
+}
+
+.pd2-side-note {
+  font-size: 0.6875rem;
+  color: var(--gray-500);
+  text-align: center;
+  margin-top: 0.35rem;
+}
+
+.pd2-info-table {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.pd2-info-table div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.pd2-info-table dt {
+  font-size: 0.625rem;
+  font-weight: 600;
+  color: var(--gray-400);
+}
+
+.pd2-info-table dd {
+  font-size: 0.8125rem;
+  color: var(--gray-800);
+  margin: 0;
+}
+
+.pd2-report {
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  text-align: center;
+  padding: 0.25rem;
+}
+
+/* --- 関連サービス（Amazon風） --- */
+.pd2-related {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.pd2-related-title {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 1.25rem;
+}
+
+.pd2-related-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.pd2-related-track {
+  flex: 1;
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 0.25rem 0 0.75rem;
+  scrollbar-width: thin;
+}
+
+.pd2-related-card {
+  flex: 0 0 11.5rem;
+  scroll-snap-align: start;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow 0.15s, border-color 0.15s;
+}
+
+@media (min-width: 640px) {
+  .pd2-related-card {
+    flex: 0 0 14rem;
+  }
+}
+
+.pd2-related-card:hover {
+  border-color: var(--trust-200);
+  box-shadow: var(--shadow-md);
+}
+
+.pd2-related-img-wrap {
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  background: var(--gray-100);
+}
+
+.pd2-related-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pd2-related-body {
+  padding: 0.85rem 0.9rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.pd2-related-cat {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--trust-700);
+}
+
+.pd2-related-name {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-900);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.2em;
+}
+
+.pd2-related-rating {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.25rem;
+}
+
+.pd2-related-rating .pd2-stars {
+  font-size: 0.8rem;
+}
+
+.pd2-related-rating strong {
+  font-size: 0.8125rem;
+  color: var(--gray-900);
+}
+
+.pd2-related-reviews {
+  font-size: 0.6875rem;
+  color: var(--gray-500);
+}
+
+.pd2-related-price {
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--gray-900);
+  margin-top: 0.15rem;
+}
+
+.pd2-related-nav {
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  border: 1px solid var(--gray-200);
+  background: #fff;
+  font-size: 1.25rem;
+  cursor: pointer;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 768px) {
+  .pd2-related-nav {
+    display: flex;
+  }
+}
+
+.pd2-related-nav:hover {
+  border-color: var(--trust-500);
+  color: var(--trust-700);
+}
+
+/* モバイル固定CTA */
+.pd2-sticky-cta {
+  display: none;
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.97);
+  border-top: 1px solid var(--gray-200);
+  box-shadow: 0 -4px 20px rgba(15, 23, 42, 0.08);
+  z-index: 90;
+}
+
+@media (max-width: 899px) {
+  .pd2-sticky-cta {
+    display: block;
+  }
+
+  .page-product-detail-v2 .page-content {
+    padding-bottom: 5rem;
+  }
+
+  .pd2-hero-actions .pd2-official-cta {
+    display: none !important;
+  }
+}

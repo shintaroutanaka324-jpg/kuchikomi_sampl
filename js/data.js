@@ -29,6 +29,9 @@ const PRODUCTS = [
     reviewCount: 127,
     companyName: "株式会社山田メディア",
     location: "東京都渋谷区",
+    highlightPro: "具体的なアクションプランが明確",
+    highlightCon: "価格が高め",
+    proofRate: 78,
   },
   {
     id: "2",
@@ -43,6 +46,9 @@ const PRODUCTS = [
       "3ヶ月間のマンツーマンコーチングプログラム。キャリアアップや起業を目指す方向けの実践的なコーチングです。",
     averageRating: 4.7,
     reviewCount: 89,
+    highlightPro: "マンツーマンで丁寧なサポート",
+    highlightCon: "価格が非常に高い",
+    proofRate: 85,
   },
   {
     id: "3",
@@ -57,6 +63,9 @@ const PRODUCTS = [
       "外見、会話術、マインドセットまで、モテる男になるための総合的な恋愛コンサルティング。",
     averageRating: 3.2,
     reviewCount: 234,
+    highlightPro: "動画の見やすさ",
+    highlightCon: "価格に見合わない内容との声も",
+    proofRate: 71,
   },
   {
     id: "4",
@@ -73,6 +82,9 @@ const PRODUCTS = [
     reviewCount: 156,
     companyName: "鈴木投資アカデミー株式会社",
     location: "東京都千代田区",
+    highlightPro: "初心者にも分かりやすい説明",
+    highlightCon: "価格が高い",
+    proofRate: 82,
   },
   {
     id: "5",
@@ -87,6 +99,9 @@ const PRODUCTS = [
       "フォロワー0から10万人を目指すX運用の完全ガイド。バズるコンテンツの作り方を徹底解説。",
     averageRating: 3.8,
     reviewCount: 98,
+    highlightPro: "バズるコンテンツの作り方が学べる",
+    highlightCon: "成果は個人差が大きい",
+    proofRate: 69,
   },
   {
     id: "6",
@@ -101,6 +116,9 @@ const PRODUCTS = [
       "理想のパートナーと出会い、幸せな結婚を実現するための女性向け恋愛講座。",
     averageRating: 4.4,
     reviewCount: 76,
+    highlightPro: "女性向けに特化した実践的アドバイス",
+    highlightCon: "価格はやや高め",
+    proofRate: 75,
   },
   {
     id: "7",
@@ -117,7 +135,195 @@ const PRODUCTS = [
     reviewCount: 183,
     companyName: "恋愛屋ジュン合同会社",
     location: "大阪府大阪市",
+    highlightPro: "コスパ抜群で実体験ベース",
+    highlightCon: "情報量が多く整理が必要",
+    proofRate: 80,
   },
+  {
+    id: "8",
+    title: "ChatGPT×業務効率化 実践マスター講座",
+    instructor: "AI活用ラボ",
+    category: "ai-it-skills",
+    price: 29800,
+    platform: "オンライン講座",
+    imageUrl:
+      "https://images.unsplash.com/photo-1677442136019-21780ecad995?w=400&h=300&fit=crop",
+    description:
+      "生成AIを仕事に活かす実践カリキュラム。プロンプト設計から業務自動化まで、未経験でも始められる内容です。",
+    averageRating: 4.5,
+    reviewCount: 312,
+    highlightPro: "実務ですぐ使えるプロンプト例が豊富",
+    highlightCon: "最新情報の更新頻度にばらつきあり",
+    proofRate: 81,
+  },
+  {
+    id: "9",
+    title: "月5万円副業スタートアップ講座",
+    instructor: "副業コンサル田中",
+    category: "side-business-independence",
+    price: 49800,
+    platform: "オンラインスクール",
+    imageUrl:
+      "https://images.unsplash.com/photo-1553877522-43269d4ea984?w=400&h=300&fit=crop",
+    description:
+      "本業と両立しながら月5万円を目指す副業のロードマップ。案件獲得から納品までの流れを体系的に学べます。",
+    averageRating: 3.9,
+    reviewCount: 156,
+    highlightPro: "副業の全体像が整理しやすい",
+    highlightCon: "成果は個人差が大きい",
+    proofRate: 74,
+  },
+  {
+    id: "10",
+    title: "宅建士合格 完全攻略オンライン講座",
+    instructor: "資格のプロ佐々木",
+    category: "certification-exam",
+    price: 88000,
+    platform: "オンライン講座",
+    imageUrl:
+      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=400&h=300&fit=crop",
+    description:
+      "宅建試験合格に必要な知識を効率的に習得。過去問演習と解説動画で独学でも学習しやすい構成です。",
+    averageRating: 4.4,
+    reviewCount: 89,
+    highlightPro: "過去問の解説が丁寧で分かりやすい",
+    highlightCon: "価格はやや高め",
+    proofRate: 86,
+  },
+  {
+    id: "11",
+    title: "トップセールスが教える 営業力強化プログラム",
+    instructor: "営業王ケン",
+    category: "sales-business-skills",
+    price: 68000,
+    platform: "オンラインコーチング",
+    imageUrl:
+      "https://images.unsplash.com/photo-1556761175-b413da4baf72?w=400&h=300&fit=crop",
+    description:
+      "商談力・クロージング力を短期間で伸ばす営業特化プログラム。BtoB・BtoC両方に応用できる実践型です。",
+    averageRating: 4.1,
+    reviewCount: 67,
+    highlightPro: "ロールプレイ形式で実践的",
+    highlightCon: "営業経験者向けの内容が多い",
+    proofRate: 79,
+  },
+  {
+    id: "12",
+    title: "Instagram運用で集客するWebマーケ講座",
+    instructor: "インスタマーケ美咲",
+    category: "web-marketing",
+    price: 45800,
+    platform: "Instagram",
+    imageUrl:
+      "https://images.unsplash.com/photo-1611162617474-5b21e939e966?w=400&h=300&fit=crop",
+    description:
+      "フォロワー獲得から商品販売まで、Instagramを使った集客の全体像を学べるマーケティング講座です。",
+    averageRating: 4.0,
+    reviewCount: 142,
+    highlightPro: "投稿テンプレートがそのまま使える",
+    highlightCon: "アルゴリズム変更の影響を受けやすい",
+    proofRate: 72,
+  },
+  {
+    id: "13",
+    title: "FXデイトレード入門 実践トレード講座",
+    instructor: "トレード研究家 木村",
+    category: "money-asset-building",
+    price: 128000,
+    platform: "オンライン講座",
+    imageUrl:
+      "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=400&h=300&fit=crop",
+    description:
+      "FXの基礎からデイトレード手法まで。チャート分析とリスク管理を重視した投資教育プログラムです。",
+    averageRating: 3.6,
+    reviewCount: 198,
+    highlightPro: "チャート分析の考え方が学べる",
+    highlightCon: "高額で損失リスクの説明が不足との声も",
+    proofRate: 68,
+  },
+  {
+    id: "14",
+    title: "未経験から始めるプログラミング副業講座",
+    instructor: "コードキャリア山本",
+    category: "side-business-independence",
+    price: 79800,
+    platform: "オンラインスクール",
+    imageUrl:
+      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=300&fit=crop",
+    description:
+      "Web制作スキルを身につけ、副業案件を獲得するための実践カリキュラム。ポートフォリオ作成までサポートします。",
+    averageRating: 4.3,
+    reviewCount: 224,
+    highlightPro: "ポートフォリオ作成まで伴走してくれる",
+    highlightCon: "学習期間が長く継続が必要",
+    proofRate: 83,
+  },
+  {
+    id: "15",
+    title: "Python×AI データ分析実務講座",
+    instructor: "データサイエンス研究所",
+    category: "ai-it-skills",
+    price: 98000,
+    platform: "オンライン講座",
+    imageUrl:
+      "https://images.unsplash.com/photo-1555949963-aa79dcee981c?w=400&h=300&fit=crop",
+    description:
+      "Pythonと機械学習の基礎から実務レベルまで。データ分析のスキルを身につけたい社会人向けの講座です。",
+    averageRating: 4.6,
+    reviewCount: 95,
+    highlightPro: "実データを使った演習が充実",
+    highlightCon: "数学の基礎がないと難しい部分も",
+    proofRate: 88,
+  },
+];
+
+/** サービス検索ページ左カラム用カテゴリ */
+const FILTER_CATEGORIES = [
+  { value: "side-business-independence", label: "副業" },
+  { value: "romance-marriage", label: "恋愛" },
+  { value: "money-asset-building", label: "投資" },
+  { value: "ai-it-skills", label: "AI" },
+  { value: "web-marketing", label: "Webマーケ" },
+  { value: "sales-business-skills", label: "営業" },
+  { value: "certification-exam", label: "資格" },
+];
+
+const POPULAR_TAGS = [
+  { label: "#副業", category: "side-business-independence" },
+  { label: "#AI", category: "ai-it-skills" },
+  { label: "#恋愛", category: "romance-marriage" },
+  { label: "#投資", category: "money-asset-building" },
+];
+
+const CATEGORY_SHORT_LABELS = {
+  "side-business-independence": "副業",
+  "romance-marriage": "恋愛",
+  "money-asset-building": "投資",
+  "ai-it-skills": "AI",
+  "web-marketing": "Webマーケ",
+  "sales-business-skills": "営業",
+  "certification-exam": "資格",
+  "career-job-change": "キャリア",
+  "english-language": "英語",
+  "health-lifestyle": "健康",
+  "community-salon": "コミュニティ",
+  other: "その他",
+};
+
+const SITE_STATS = {
+  serviceCount: 1250,
+  reviewCount: 12847,
+  reviewerCount: 5800,
+  averageRating: 4.2,
+};
+
+const TRENDING_SEARCHES = [
+  { label: "#山田コーチ", query: "山田太郎", hint: "口コミ127件" },
+  { label: "#恋愛屋ジュン塾", query: "恋愛屋ジュン", hint: "今週+5件" },
+  { label: "#佐藤コーチング", query: "佐藤花子", hint: "口コミ89件" },
+  { label: "#鈴木投資アカデミー", query: "鈴木投資郎", hint: "口コミ156件" },
+  { label: "#副業スクール", query: "副業", hint: "口コミ234件" },
+  { label: "#YouTube講座", query: "YouTube", hint: "今週+3件" },
 ];
 
 const REVIEWS = [
@@ -128,6 +334,9 @@ const REVIEWS = [
     age: "30代",
     rating: 4.5,
     date: "2026-05-20",
+    verifiedPurchase: true,
+    identityVerified: true,
+    enrollmentVerified: true,
     title: "本当に収益化できました！",
     content:
       "最初は半信半疑でしたが、この教材の通りに実践したところ、6ヶ月で収益化を達成できました。特に動画のサムネイル制作とSEO対策の部分が非常に参考になりました。価格は高いですが、それ以上の価値がありました。",
@@ -147,6 +356,9 @@ const REVIEWS = [
     age: "20代",
     rating: 3.5,
     date: "2026-04-15",
+    verifiedPurchase: false,
+    identityVerified: false,
+    enrollmentVerified: false,
     title: "内容は良いが価格が...",
     content:
       "コンテンツ自体は良質で、YouTubeの収益化に必要な知識は一通り学べます。ただ、正直なところネットで調べればある程度わかる内容も含まれており、この価格は少し高すぎると感じました。",
@@ -166,6 +378,9 @@ const REVIEWS = [
     age: "40代",
     rating: 5,
     date: "2026-05-10",
+    verifiedPurchase: true,
+    identityVerified: true,
+    enrollmentVerified: true,
     title: "人生が変わりました",
     content:
       "佐藤さんのコーチングを受けて、自分の可能性を信じられるようになりました。3ヶ月のプログラムで、転職も成功し、年収も200万円アップ。高額ですが、投資した以上のリターンがありました。",
@@ -185,6 +400,9 @@ const REVIEWS = [
     age: "20代",
     rating: 4.5,
     date: "2026-05-01",
+    verifiedPurchase: true,
+    identityVerified: true,
+    enrollmentVerified: false,
     title: "コスパ最高の恋愛教材",
     content:
       "他の恋愛コンサルは10万円以上するのに、この価格でこの内容量は本当にすごい。ジュンさんの実体験に基づいたアドバイスなので説得力があります。",
@@ -196,6 +414,50 @@ const REVIEWS = [
     supportQuality: 4,
     costPerformance: 5,
     recommendation: 5,
+  },
+  {
+    id: "r5",
+    productId: "3",
+    userName: "匿名ユーザーE",
+    age: "30代",
+    rating: 2.5,
+    date: "2026-05-18",
+    verifiedPurchase: true,
+    identityVerified: true,
+    enrollmentVerified: true,
+    title: "期待外れだった",
+    content:
+      "SNSの煽りに乗って購入しましたが、内容は一般的な恋愛テクニックの寄せ集め。同じ情報はYouTubeでも無料で得られます。購入前に口コミを見ていれば防げた失敗でした。",
+    purchasePrice: 49800,
+    pros: ["動画の見やすさ"],
+    cons: ["価格に見合わない", "誇大広告感", "成果が出にくい"],
+    contentSatisfaction: 3,
+    resultRealization: 2,
+    supportQuality: 2.5,
+    costPerformance: 2,
+    recommendation: 2,
+  },
+  {
+    id: "r6",
+    productId: "4",
+    userName: "匿名ユーザーF",
+    age: "50代",
+    rating: 4,
+    date: "2026-05-22",
+    verifiedPurchase: true,
+    identityVerified: false,
+    enrollmentVerified: true,
+    title: "初心者には分かりやすい投資講座",
+    content:
+      "鈴木先生の説明は丁寧で、投資初心者の私でも理解できました。ただし高額なので、余裕資金がある方向け。購入前に口コミを読んで安心して申し込めました。",
+    purchasePrice: 79800,
+    pros: ["説明が分かりやすい", "カリキュラムが体系的"],
+    cons: ["価格が高い", "成果は自己責任"],
+    contentSatisfaction: 4.5,
+    resultRealization: 3.5,
+    supportQuality: 4,
+    costPerformance: 3.5,
+    recommendation: 4,
   },
 ];
 
@@ -211,8 +473,47 @@ function getReviewsByProductId(productId) {
   return REVIEWS.filter((r) => r.productId === productId);
 }
 
+/** 商品（商材）単位の口コミ集計 */
+function getProductReviewSummary(product) {
+  const reviews = getReviewsByProductId(product.id);
+  const sorted = [...reviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (!sorted.length) {
+    return {
+      reviews: [],
+      reviewCount: product.reviewCount || 0,
+      averageRating: product.averageRating,
+      latestDate: null,
+      latestReview: null,
+    };
+  }
+
+  const averageRating = sorted.reduce((sum, r) => sum + r.rating, 0) / sorted.length;
+
+  return {
+    reviews: sorted,
+    reviewCount: sorted.length,
+    averageRating,
+    latestDate: sorted[0].date,
+    latestReview: sorted[0],
+  };
+}
+
 function formatPrice(price) {
   return "¥" + price.toLocaleString("ja-JP");
+}
+
+function formatPriceRange(price) {
+  if (price >= 100000) return "10万円〜";
+  if (price >= 50000) return "5万円〜10万円";
+  if (price >= 30000) return "3万円〜5万円";
+  return "〜3万円";
+}
+
+function formatDateJa(dateStr) {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return dateStr;
+  return `${d.getFullYear()}/${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 function renderStars(rating, max = 5) {
@@ -222,4 +523,120 @@ function renderStars(rating, max = 5) {
   }
   html += "</div>";
   return html;
+}
+
+const TRUST_BADGE_ICONS = {
+  purchase:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>',
+  identity:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  enrollment:
+    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>',
+};
+
+/**
+ * 購入記録などを提出した口コミにのみバッジを表示（認証必須ではない）
+ */
+function renderReviewTrustBadges(review, options = {}) {
+  const large = options.large === true;
+  const cls = large ? "trust-badge trust-badge--lg" : "trust-badge";
+  const badges = [];
+
+  if (review.verifiedPurchase) {
+    badges.push(
+      `<span class="${cls} trust-badge--purchase" title="購入記録を提出済み">${TRUST_BADGE_ICONS.purchase}購入証明済み</span>`
+    );
+  }
+  if (review.identityVerified) {
+    badges.push(
+      `<span class="${cls} trust-badge--identity" title="本人確認書類を提出済み">${TRUST_BADGE_ICONS.identity}本人確認済み</span>`
+    );
+  }
+  if (review.enrollmentVerified) {
+    badges.push(
+      `<span class="${cls} trust-badge--enrollment" title="受講記録を提出済み">${TRUST_BADGE_ICONS.enrollment}受講確認済み</span>`
+    );
+  }
+
+  if (!badges.length) return "";
+  const rowClass = large ? "trust-badges-row trust-badges-row--lg" : "trust-badges-row";
+  return `<div class="${rowClass}">${badges.join("")}</div>`;
+}
+
+function hasAnyTrustBadge(review) {
+  return !!(review.verifiedPurchase || review.identityVerified || review.enrollmentVerified);
+}
+
+function getCategoryShortLabel(value) {
+  return CATEGORY_SHORT_LABELS[value] || getCategoryLabel(value);
+}
+
+const RECENT_VIEWED_KEY = "recentlyViewedProducts";
+const RECENT_VIEWED_MAX = 5;
+
+function trackRecentlyViewed(productId) {
+  if (!productId) return;
+  let ids = [];
+  try {
+    ids = JSON.parse(localStorage.getItem(RECENT_VIEWED_KEY) || "[]");
+  } catch {
+    ids = [];
+  }
+  ids = ids.filter((id) => id !== productId);
+  ids.unshift(productId);
+  ids = ids.slice(0, RECENT_VIEWED_MAX);
+  localStorage.setItem(RECENT_VIEWED_KEY, JSON.stringify(ids));
+}
+
+function getRecentlyViewedProducts() {
+  let ids = [];
+  try {
+    ids = JSON.parse(localStorage.getItem(RECENT_VIEWED_KEY) || "[]");
+  } catch {
+    return [];
+  }
+  return ids.map((id) => getProductById(id)).filter(Boolean);
+}
+
+/** 一覧・カード表示用の集計（口コミ件数は product.reviewCount を優先） */
+function getProductDisplayStats(product) {
+  const summary = getProductReviewSummary(product);
+  const reviews = summary.reviews;
+  const displayCount = Math.max(product.reviewCount || 0, summary.reviewCount || 0);
+  const rating = reviews.length ? summary.averageRating : product.averageRating;
+
+  let proofRate = product.proofRate;
+  if (reviews.length) {
+    const verified = reviews.filter((r) => r.verifiedPurchase).length;
+    proofRate = Math.round((verified / reviews.length) * 100);
+  }
+  if (proofRate == null) proofRate = 70;
+
+  let recommendScore = rating;
+  const withRec = reviews.filter((r) => r.recommendation != null);
+  if (withRec.length) {
+    recommendScore = withRec.reduce((s, r) => s + r.recommendation, 0) / withRec.length;
+  }
+
+  let highlightPro = product.highlightPro;
+  let highlightCon = product.highlightCon;
+  if (reviews.length) {
+    const sorted = [...reviews].sort((a, b) => b.rating - a.rating);
+    const best = sorted[0];
+    highlightPro = best.pros?.[0] || highlightPro || "購入者から高評価の口コミあり";
+    highlightCon = best.cons?.[0] || highlightCon || "気になる点も口コミで確認できます";
+  }
+  if (!highlightPro) highlightPro = "口コミを投稿して最初の1件に";
+  if (!highlightCon) highlightCon = "購入前に口コミで確認しましょう";
+
+  return {
+    summary,
+    displayCount,
+    rating,
+    proofRate,
+    recommendScore,
+    highlightPro,
+    highlightCon,
+    hasProof: proofRate >= 50,
+  };
 }

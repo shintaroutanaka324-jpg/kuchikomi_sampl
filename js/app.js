@@ -1,17 +1,101 @@
 (function () {
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const existing = document.querySelector(`script[src="${src}"]`);
+      if (existing) {
+        if (existing.dataset.loaded === "true") {
+          resolve();
+          return;
+        }
+        existing.addEventListener("load", () => resolve(), { once: true });
+        existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
+        return;
+      }
+      const script = document.createElement("script");
+      script.src = src;
+      script.async = false;
+      script.onload = () => {
+        script.dataset.loaded = "true";
+        resolve();
+      };
+      script.onerror = () => reject(new Error(`Failed to load ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  const authBootstrap = (async () => {
+    await loadScript("js/supabase-config.js");
+    await loadScript("js/auth.js");
+    await window.Auth.whenReady();
+  })();
+
+  function whenReady() {
+    return authBootstrap;
+  }
+
   const SUB_NAV_ITEMS = [
-    { label: "トップ", path: "index.html" },
-    { label: "口コミ一覧", path: "reviews.html" },
-    { label: "Q&A", path: "faq.html" },
-    { label: "問い合わせ", path: "contact.html" },
+    { label: "トップ", path: "index.html", icon: "home" },
+    {
+      label: "サービスを探す",
+      path: "reviews.html",
+      alsoActive: ["review-detail.html"],
+      icon: "search",
+    },
+    { label: "カウマエとは", path: "about.html", icon: "info" },
+    { label: "口コミを投稿する", path: "submit-review.html", icon: "edit" },
+    { label: "Q&A", path: "faq.html", icon: "help" },
+    { label: "問い合わせ", path: "contact.html", icon: "mail" },
   ];
 
+  const SUB_NAV_ICON = {
+    home:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>',
+    search:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>',
+    edit:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+    help:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 1 1 4.2 1.8c-.7.6-1.2 1.3-1.2 2.2"/><circle cx="12" cy="17" r=".5" fill="currentColor"/></svg>',
+    mail:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+    info:
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><circle cx="12" cy="8" r=".5" fill="currentColor"/></svg>',
+  };
+
+  function isSubNavActive(item, current) {
+    if (current === item.path) return true;
+    if ((current === "" || current === "index.html") && item.path === "index.html") return true;
+    if (item.alsoActive?.includes(current)) return true;
+    return false;
+  }
+
+  function renderSubNavLink(item, current, { mobile = false } = {}) {
+    const active = isSubNavActive(item, current);
+    const base = mobile ? "mobile-nav-link" : "sub-nav-link";
+    const classes = [base, active ? "active" : "", item.cta ? `${base}--cta` : ""]
+      .filter(Boolean)
+      .join(" ");
+    const icon = SUB_NAV_ICON[item.icon] || "";
+    return `<a href="${item.path}" class="${classes}"${active ? ' aria-current="page"' : ""}>
+      ${icon ? `<span class="${base}-icon">${icon}</span>` : ""}
+      <span class="${base}-label${mobile ? "" : " sub-nav-label"}">${item.label}</span>
+    </a>`;
+  }
+
+  function renderSubNavLinks(current, options = {}) {
+    return SUB_NAV_ITEMS.map((item) => renderSubNavLink(item, current, options)).join("");
+  }
+
   function isLoggedIn() {
-    return localStorage.getItem("isLoggedIn") === "true";
+    return window.Auth?.isLoggedIn() ?? false;
   }
 
   function getUserName() {
-    return localStorage.getItem("userName") || "ユーザー";
+    return window.Auth?.getUserName() ?? "ユーザー";
+  }
+
+  function getUserEmail() {
+    return window.Auth?.getUserEmail() ?? "";
   }
 
   function hasUnlockedReviews() {
@@ -41,17 +125,27 @@
    * 2. imageSrc を "images/logo.png" などに変更
    * 3. 画像にサイト名が入っている場合は showSiteName: false
    */
+  const SITE_BRAND = {
+    nameJa: "カウマエ",
+    nameEn: "",
+    nameFull: "カウマエ",
+  };
+
   const SITE_LOGO = {
-    imageSrc: "images/logo.svg",
-    alt: "Open e-Learning",
-    siteName: "Open e-Learning",
-    showSiteName: true,
+    imageSrc: "images/logo.png",
+    alt: "カウマエ — 口コミで、失敗しない選択を。",
+    siteName: SITE_BRAND.nameJa,
+    siteNameEn: SITE_BRAND.nameEn,
+    showSiteName: false,
   };
 
   function renderLogoInner() {
-    const img = `<img src="${SITE_LOGO.imageSrc}" alt="${escapeHtml(SITE_LOGO.alt)}" class="logo-img" width="32" height="32" />`;
+    const img = `<img src="${SITE_LOGO.imageSrc}" alt="${escapeHtml(SITE_LOGO.alt)}" class="logo-img" width="44" height="44" />`;
+    const en = SITE_LOGO.siteNameEn
+      ? `<span class="logo-text-en">${escapeHtml(SITE_LOGO.siteNameEn)}</span>`
+      : "";
     const name = SITE_LOGO.showSiteName
-      ? `<span class="logo-text">${escapeHtml(SITE_LOGO.siteName)}</span>`
+      ? `<span class="logo-text">${escapeHtml(SITE_LOGO.siteName)}${en}</span>`
       : "";
     return img + name;
   }
@@ -71,7 +165,7 @@
           <form class="search-form" id="header-search-form">
             <div class="search-wrap">
               <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              <input type="text" class="search-input" id="header-search" placeholder="サービス名や講師名で検索..." />
+              <input type="text" class="search-input" id="header-search" placeholder="発信者名・アカウント名で口コミを検索..." />
             </div>
           </form>
           <nav class="header-nav">
@@ -92,7 +186,7 @@
               </div>`
                 : `
               <a href="login.html" class="btn btn-ghost btn-sm">ログイン</a>
-              <a href="register.html" class="btn btn-primary btn-sm">新規登録</a>`
+              <a href="register.html" class="btn btn-trust btn-sm">新規登録</a>`
             }
           </nav>
           <button type="button" class="menu-toggle" id="menu-toggle" aria-label="メニュー">☰</button>
@@ -100,24 +194,25 @@
         <div class="container mobile-nav" id="mobile-nav">
           <form id="mobile-search-form" style="margin-bottom:1rem">
             <div class="search-wrap">
-              <input type="text" class="search-input" id="mobile-search" placeholder="サービス名や講師名で検索..." style="padding-left:0.75rem" />
+              <input type="text" class="search-input" id="mobile-search" placeholder="発信者名・アカウント名で口コミを検索..." style="padding-left:0.75rem" />
             </div>
           </form>
-          <a href="reviews.html">口コミを見る</a>
+          <div class="mobile-nav-links">
+            ${renderSubNavLinks(current, { mobile: true })}
+          </div>
           ${
             loggedIn
               ? `<button type="button" class="btn btn-ghost" id="mobile-logout" style="margin-top:0.5rem">ログアウト</button>`
               : `<a href="login.html" class="btn btn-ghost" style="margin-top:0.5rem">ログイン</a>
-                 <a href="register.html" class="btn btn-primary" style="margin-top:0.5rem">新規登録</a>`
+                 <a href="register.html" class="btn btn-trust" style="margin-top:0.5rem">新規登録</a>`
           }
         </div>
       </header>
-      <nav class="sub-nav">
-        <div class="container sub-nav-inner">
-          ${SUB_NAV_ITEMS.map(
-            (item) =>
-              `<a href="${item.path}" class="${current === item.path || (current === "" && item.path === "index.html") ? "active" : ""}">${item.label}</a>`
-          ).join("")}
+      <nav class="sub-nav" aria-label="メインナビゲーション">
+        <div class="container sub-nav-shell">
+          <div class="sub-nav-inner">
+            ${renderSubNavLinks(current)}
+          </div>
         </div>
       </nav>
     `;
@@ -153,10 +248,12 @@
     });
   }
 
-  function logout() {
-    localStorage.removeItem("isLoggedIn");
-    localStorage.removeItem("userEmail");
-    localStorage.removeItem("userName");
+  async function logout() {
+    try {
+      await window.Auth?.signOut();
+    } catch (err) {
+      console.warn("[カウマエ] ログアウトエラー", err);
+    }
     showToast("ログアウトしました");
     setTimeout(() => (window.location.href = "index.html"), 500);
   }
@@ -171,47 +268,54 @@
           <div>
             <div class="footer-logo">${renderLogoInner()}</div>
             <p class="footer-desc">
-              オンライン学習・情報サービスの口コミ比較サイト。実際の購入者の声で、あなたに合った学びを見つけましょう。
+              オンライン講座・コーチング・情報商材・SNS発信者の商品・サロン・副業スクールの購入前口コミサイト。口コミの透明性で、高額講座の失敗を防ぎます。
             </p>
             <div class="social-links">
-              <a href="#" aria-label="X">𝕏</a>
-              <a href="#" aria-label="Facebook">f</a>
-              <a href="#" aria-label="Instagram">◎</a>
+              <a href="https://x.com/kaumaereview" target="_blank" rel="noopener noreferrer" aria-label="X（@kaumaereview）">𝕏</a>
             </div>
           </div>
           <div class="footer-col">
-            <h4>サイトマップ</h4>
+            <h4>サービス</h4>
             <ul class="footer-links">
-              <li><a href="index.html">トップ</a></li>
-              <li><a href="reviews.html">口コミ一覧</a></li>
-              <li><a href="submit-review.html">口コミを投稿</a></li>
+              <li><a href="reviews.html">サービスを探す</a></li>
+              <li><a href="submit-review.html">口コミを投稿する</a></li>
+              <li><a href="faq.html">Q&amp;A</a></li>
             </ul>
           </div>
           <div class="footer-col">
             <h4>サポート</h4>
             <ul class="footer-links">
-              <li><a href="faq.html">Q&A</a></li>
               <li><a href="contact.html">お問い合わせ</a></li>
-              <li><a href="login.html">アカウント設定</a></li>
-              <li><a href="#">利用規約</a></li>
-              <li><a href="#">プライバシーポリシー</a></li>
+              <li><a href="deletion-request.html">削除依頼</a></li>
             </ul>
           </div>
           <div class="footer-col">
-            <h4>運営会社</h4>
+            <h4>運営情報</h4>
             <ul class="footer-links">
-              <li><a href="#">会社概要</a></li>
-              <li>support@openelearning.com</li>
-              <li>03-1234-5678</li>
-              <li>東京都渋谷区</li>
+              <li><a href="terms.html">利用規約</a></li>
+              <li><a href="privacy.html">プライバシーポリシー</a></li>
+              <li><a href="tokushoho.html">特定商取引法に基づく表記</a></li>
             </ul>
           </div>
         </div>
         <div class="footer-bottom">
-          <p>&copy; ${new Date().getFullYear()} Open e-Learning. All rights reserved.</p>
+          <p>&copy; ${new Date().getFullYear()} ${escapeHtml(SITE_BRAND.nameFull)}. All rights reserved.</p>
         </div>
       </footer>
     `;
+  }
+
+  function renderBreadcrumbList(items) {
+    return items
+      .map((item, i) => {
+        const isLast = i === items.length - 1;
+        const label = escapeHtml(item.label);
+        if (item.path && !isLast) {
+          return `<li><a href="${item.path}">${label}</a></li>`;
+        }
+        return `<li><span class="breadcrumb-current" aria-current="page">${label}</span></li>`;
+      })
+      .join("");
   }
 
   function renderBreadcrumb(items) {
@@ -219,19 +323,10 @@
     if (!el || !items.length) return;
 
     el.innerHTML = `
-      <nav class="breadcrumb">
+      <nav class="breadcrumb" aria-label="パンくず">
         <div class="container">
-          <ol>
-            ${items
-              .map((item, i) => {
-                const isLast = i === items.length - 1;
-                const sep = i > 0 ? '<span class="sep">›</span>' : "";
-                const content = item.path && !isLast
-                  ? `<a href="${item.path}">${item.label}</a>`
-                  : `<span class="${isLast ? "current" : ""}">${item.label}</span>`;
-                return `${sep}<li>${content}</li>`;
-              })
-              .join("")}
+          <ol class="breadcrumb-list">
+            ${renderBreadcrumbList(items)}
           </ol>
         </div>
       </nav>
@@ -259,16 +354,28 @@
     return new URLSearchParams(window.location.search).get(name);
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", async () => {
+    await whenReady();
     renderHeader();
     renderFooter();
   });
 
+  window.addEventListener("auth:changed", () => {
+    renderHeader();
+  });
+
   window.App = {
+    SITE_BRAND,
+    whenReady,
     isLoggedIn,
+    getUserName,
+    getUserEmail,
     hasUnlockedReviews,
     showToast,
+    renderHeader,
+    renderFooter,
     renderBreadcrumb,
+    renderBreadcrumbList,
     initFaqAccordion,
     getQueryParam,
     escapeHtml,

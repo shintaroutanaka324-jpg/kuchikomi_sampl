@@ -3,96 +3,112 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>口コミ一覧 | Open e-Learning</title>
+  <meta name="description" content="オンライン講座・コーチング・情報商材の口コミを検索・比較。購入前に購入者の本音を確認し、失敗しないサービス選びを。" />
+  <title>サービスを探す | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
 </head>
-<body class="page-reviews">
+<body class="page-reviews page-reviews-v2">
   <div id="site-header"></div>
 
-  <main>
-    <!-- ページヒーロー -->
-    <section class="reviews-hero">
-      <div class="container reviews-hero-inner">
-        <div class="reviews-hero-text">
-          <nav class="reviews-breadcrumb" aria-label="パンくず">
-            <a href="index.html">ホーム</a>
-            <span class="sep">›</span>
-            <span>口コミ一覧</span>
-          </nav>
-          <h1>口コミ一覧</h1>
-          <p>
-            実際にサービスを受けた方のリアルな口コミをチェックして、
-            あなたに合ったオンライン学習サービスを選びましょう。
-          </p>
-        </div>
-        <div class="reviews-hero-image">
-          <img
-            src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&h=400&fit=crop"
-            alt="口コミを読む女性"
-            loading="eager"
-          />
-        </div>
-      </div>
-    </section>
+  <main class="rs-page">
+    <div class="container">
+      <button type="button" class="rs-filter-toggle" id="filter-toggle" aria-expanded="false" aria-controls="rs-filter">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 6h16M7 12h10M10 18h4"/></svg>
+        絞り込み
+      </button>
 
-    <!-- 検索・並び替え -->
-    <section class="reviews-toolbar-wrap">
-      <div class="container">
-        <div class="reviews-toolbar">
-          <div class="reviews-search">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-              <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
-            </svg>
-            <input
-              type="text"
-              id="filter-search"
-              placeholder="サービス名・講師名・キーワードで検索..."
-              aria-label="口コミを検索"
-            />
-          </div>
-          <select class="select reviews-genre" id="filter-genre" aria-label="ジャンルで絞り込み">
-            <option value="all">すべてのジャンル</option>
-          </select>
-          <select class="select reviews-sort" id="filter-sort" aria-label="並び替え">
-            <option value="date-new">新着</option>
-            <option value="rating-high">高評価</option>
-            <option value="rating-low">低評価</option>
-          </select>
-        </div>
-      </div>
-    </section>
+      <div class="rs-layout">
+        <aside class="rs-filter" id="rs-filter">
+          <div class="rs-filter-inner">
+            <div class="rs-filter-head">
+              <h2>絞り込み</h2>
+              <button type="button" class="rs-filter-clear" id="filter-clear">すべてクリア</button>
+            </div>
 
-    <!-- 一覧 + サイドバー -->
-    <section class="reviews-body">
-      <div class="container reviews-layout">
-        <div class="reviews-main">
-          <p class="reviews-count" id="result-count"></p>
-          <div id="review-list" class="review-list"></div>
-          <div id="empty-state" class="empty-state hidden">
-            <p>該当する口コミが見つかりませんでした</p>
-            <button type="button" class="btn btn-outline mt-4" id="reset-filters">条件をリセット</button>
+            <fieldset class="rs-filter-group">
+              <legend>カテゴリ</legend>
+              <div class="rs-filter-checks" id="filter-categories"></div>
+            </fieldset>
+
+            <fieldset class="rs-filter-group">
+              <legend>評価</legend>
+              <div class="rs-filter-radios" id="filter-rating"></div>
+            </fieldset>
+
+            <fieldset class="rs-filter-group">
+              <legend>口コミ数</legend>
+              <div class="rs-filter-radios" id="filter-review-count"></div>
+            </fieldset>
+
+            <fieldset class="rs-filter-group">
+              <legend>購入証明</legend>
+              <label class="rs-filter-checkbox">
+                <input type="checkbox" id="filter-proof" />
+                <span>購入証明ありのみ</span>
+              </label>
+            </fieldset>
+
+            <button type="button" class="btn btn-outline btn-block rs-filter-submit" id="filter-submit">
+              この条件で検索する
+            </button>
           </div>
-          <nav class="pagination" id="pagination" aria-label="ページネーション"></nav>
+        </aside>
+
+        <div class="rs-main">
+          <header class="rs-topbar">
+            <nav class="breadcrumb breadcrumb--compact" aria-label="パンくず">
+              <ol class="breadcrumb-list">
+                <li><a href="index.html">トップ</a></li>
+                <li><span class="breadcrumb-current" aria-current="page">サービスを探す</span></li>
+              </ol>
+            </nav>
+            <h1>サービスを探す</h1>
+            <p class="rs-topbar-desc">発信者名・アカウント名で探して、口コミを比較しましょう</p>
+          </header>
+
+          <div class="rs-toolbar">
+            <div class="rs-tags" id="popular-tags" aria-label="人気タグ"></div>
+            <div class="rs-results-head">
+              <p class="rs-results-count" id="result-count"></p>
+              <select class="rs-sort" id="filter-sort" aria-label="並び替え">
+                <option value="recommended">おすすめ順</option>
+                <option value="reviews-high">口コミが多い順</option>
+                <option value="rating-high">評価が高い順</option>
+                <option value="date-new">新着口コミ順</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="review-list" class="rs-list"></div>
+
+          <div id="empty-state" class="rs-empty hidden">
+            <p>該当するサービスが見つかりませんでした</p>
+            <p class="rs-empty-hint">条件を変えるか、キーワードを短くしてお試しください</p>
+            <button type="button" class="btn btn-outline" id="reset-filters">条件をリセット</button>
+          </div>
+
+          <nav class="pagination rs-pagination" id="pagination" aria-label="ページネーション"></nav>
         </div>
 
-        <aside class="reviews-sidebar">
-          <div class="sidebar-box sidebar-cta">
-            <h3>さっそく口コミを投稿</h3>
-            <p>あなたの体験が、誰かの学びの選択を助けます</p>
-            <a href="submit-review.html" class="btn btn-primary btn-block">✏️ 口コミを投稿する</a>
+        <aside class="rs-sidebar">
+          <div class="rs-side-card rs-side-card--cta">
+            <p class="rs-side-lead">購入者の本音で比較 · 良い点も悪い点も確認</p>
+            <a href="submit-review.html" class="btn btn-trust btn-block">口コミを投稿する</a>
           </div>
-          <div class="sidebar-box">
-            <h3>口コミ投稿について</h3>
-            <ul class="sidebar-guidelines">
-              <li>実際に購入・受講したサービスのみ投稿できます</li>
-              <li>具体的で建設的な内容を心がけてください</li>
-              <li>個人情報や誹謗中傷は禁止です</li>
-            </ul>
-            <a href="faq.html" class="sidebar-link">口コミ投稿ガイドラインを見る →</a>
+
+          <div class="rs-side-duo">
+            <div class="rs-side-card rs-side-card--compact" id="popular-ranking">
+              <h3>人気ランキング</h3>
+              <ol class="rs-ranking" id="ranking-list"></ol>
+            </div>
+            <div class="rs-side-card rs-side-card--compact" id="recent-viewed">
+              <h3>最近見たサービス</h3>
+              <div class="rs-side-list" id="recent-list"></div>
+            </div>
           </div>
         </aside>
       </div>
-    </section>
+    </div>
   </main>
 
   <div id="site-footer"></div>
