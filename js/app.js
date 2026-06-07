@@ -29,6 +29,7 @@
     await window.Auth.whenReady();
     await loadScript("js/reviews-api.js");
     await window.ReviewsApi?.whenReady?.();
+    await loadScript("js/billing-api.js");
   })();
 
   function whenReady() {
@@ -177,6 +178,7 @@
 
     const loggedIn = isLoggedIn();
     const userName = getUserName();
+    const isPaid = window.Auth?.isPaidMember?.() ?? false;
     const current = getCurrentPage();
 
     el.innerHTML = `
@@ -197,6 +199,7 @@
                 <button type="button" class="user-btn" id="user-menu-btn">
                   <span class="avatar">👤</span>
                   <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;font-size:0.875rem">${userName}</span>
+                  ${isPaid ? '<span class="member-badge">有料会員</span>' : ""}
                   <span>▼</span>
                 </button>
                 <div class="dropdown" id="user-dropdown">
@@ -380,6 +383,7 @@
     await whenReady();
     renderHeader();
     renderFooter();
+    window.BillingApi?.handlePaymentQueryParams?.();
   });
 
   window.addEventListener("auth:changed", () => {

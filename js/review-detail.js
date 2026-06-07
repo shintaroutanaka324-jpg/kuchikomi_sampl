@@ -179,7 +179,39 @@ document.addEventListener("DOMContentLoaded", async () => {
   `;
 
   initProductDetailInteractions(product.id, reviews, unlocked);
+  initReviewPaywallBilling();
 });
+
+function initReviewPaywallBilling() {
+  const startCheckout = async (btn) => {
+    if (!Auth.isLoggedIn()) {
+      window.location.href = "login.html?redirect=review-detail.html?id=" + encodeURIComponent(App.getQueryParam("id") || "");
+      return;
+    }
+    if (btn) {
+      btn.disabled = true;
+      const original = btn.textContent;
+      btn.textContent = "移動中...";
+      try {
+        await BillingApi.startCheckout({
+          redirectOnLogin: `review-detail.html?id=${encodeURIComponent(App.getQueryParam("id") || "")}`,
+        });
+      } catch (err) {
+        App.showToast(err.message, "error");
+        btn.disabled = false;
+        btn.textContent = original;
+      }
+    }
+  };
+
+  document.getElementById("pd2-unlock-subscribe")?.addEventListener("click", (e) => {
+    startCheckout(e.currentTarget);
+  });
+
+  document.querySelectorAll(".pd2-paywall-subscribe").forEach((btn) => {
+    btn.addEventListener("click", () => startCheckout(btn));
+  });
+}
 
 function computeStarDistribution(reviews, totalCount, avgRating) {
   const counts = [0, 0, 0, 0, 0];
@@ -232,15 +264,15 @@ function renderUnlockBanner() {
     <div class="pd2-unlock pd2-unlock--premium">
       <div class="pd2-unlock-icon" aria-hidden="true">🔒</div>
       <p class="pd2-unlock-title">続きを読むには</p>
-      <p class="pd2-unlock-desc">実際の購入者による詳細な口コミは、投稿者またはプレミアム会員のみ全文閲覧できます。</p>
+      <p class="pd2-unlock-desc">口コミ全文を見るには <strong>月額880円で登録</strong> するか、<strong>口コミを投稿</strong> してください。</p>
       <ul class="pd2-unlock-list">
-        <li>口コミを投稿する</li>
+        <li>月額880円で口コミをすべて見る</li>
         <li>または</li>
-        <li>プレミアム会員になる</li>
+        <li>口コミを投稿すると閲覧できます</li>
       </ul>
       <div class="pd2-unlock-actions">
-        <a href="submit-review.html" class="btn btn-trust">口コミを投稿する</a>
-        <a href="pricing.html" class="btn btn-outline-trust">プレミアム会員になる</a>
+        <button type="button" class="btn btn-trust" id="pd2-unlock-subscribe">月額880円で登録する</button>
+        <a href="submit-review.html" class="btn btn-outline-trust">口コミを投稿する</a>
       </div>
     </div>`;
 }
@@ -288,13 +320,13 @@ function renderPaywallCta(showActions = true) {
       <span class="pd2-paywall-lock" aria-hidden="true">🔒</span>
       <p class="pd2-paywall-cta-title">続きを読むには</p>
       <ul class="pd2-paywall-cta-list">
-        <li>口コミを投稿する</li>
+        <li>月額880円で登録</li>
         <li>または</li>
-        <li>プレミアム会員になる</li>
+        <li>口コミを投稿</li>
       </ul>
       <div class="pd2-paywall-cta-actions">
-        <a href="submit-review.html" class="btn btn-trust btn-sm">口コミを投稿する</a>
-        <a href="pricing.html" class="btn btn-outline-trust btn-sm">プレミアム会員になる</a>
+        <button type="button" class="btn btn-trust btn-sm pd2-paywall-subscribe">月額880円で登録</button>
+        <a href="submit-review.html" class="btn btn-outline-trust btn-sm">口コミを投稿</a>
       </div>
     </div>`;
 }

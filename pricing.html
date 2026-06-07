@@ -17,6 +17,8 @@
         <p style="color:var(--gray-600)">検索・星評価は無料。全文閲覧は口コミ投稿または月額プランで</p>
       </div>
 
+      <div id="pricing-member-status"></div>
+
       <div class="grid-3 pricing-grid">
         <article class="card pricing-card">
           <div class="card-body">
@@ -36,11 +38,11 @@
           <div class="card-body">
             <h3 class="card-title" style="font-size:1.25rem">口コミ投稿で解放</h3>
             <div class="price">¥0</div>
-            <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">1件投稿で1か月、全文閲覧</p>
+            <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">1件投稿ですべての口コミを閲覧</p>
             <ul class="feature-list">
               <li><span class="check">✓</span> <strong>すべての口コミ・詳細評価</strong></li>
-              <li><span class="check">✓</span> <strong>閲覧期間延長（1か月）</strong></li>
               <li><span class="check">✓</span> <strong>投稿は無料</strong></li>
+              <li><span class="check">✓</span> <strong>購入者の体験をシェア</strong></li>
             </ul>
             <a href="submit-review.html" class="btn btn-trust btn-block">体験談を投稿する</a>
           </div>
@@ -48,14 +50,19 @@
         <article class="card pricing-card">
           <div class="card-body">
             <h3 class="card-title" style="font-size:1.25rem">月額プラン</h3>
-            <div class="price">¥880<span style="font-size:1rem;font-weight:500;color:var(--gray-500)">/月</span></div>
+            <div class="price">¥880<span style="font-size:1rem;font-weight:500;color:var(--gray-500)">/月（税込）</span></div>
             <p style="font-size:0.8125rem;color:var(--gray-500);margin-bottom:1rem">投稿なしで全文閲覧</p>
             <ul class="feature-list">
-              <li><span class="check">✓</span> <strong>1か月間、全文閲覧</strong></li>
-              <li><span class="check">✓</span> <strong>複数サービスを比較</strong></li>
+              <li><span class="check">✓</span> <strong>すべての口コミ全文</strong></li>
+              <li><span class="check">✓</span> <strong>評価ポイントの詳細</strong></li>
               <li><span class="check">✓</span> <strong>購入検討中の方に</strong></li>
             </ul>
-            <a href="login.html" class="btn btn-outline btn-block">月額880円で全文を読む</a>
+            <button type="button" class="btn btn-trust btn-block" id="pricing-subscribe-btn">
+              月額880円で口コミをすべて見る
+            </button>
+            <p class="pricing-subscribe-hint" id="pricing-subscribe-hint">
+              ログイン後、Stripe の安全な決済ページへ移動します
+            </p>
           </div>
         </article>
       </div>
@@ -66,13 +73,6 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      App.renderBreadcrumb([
-        { label: "トップ", path: "index.html" },
-        { label: "料金プラン" },
-      ]);
-    });
-  </script>
+  <script src="js/pricing.js"></script>
 </body>
 </html>

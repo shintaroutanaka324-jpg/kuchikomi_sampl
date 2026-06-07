@@ -14,4 +14,6 @@ window.SUPABASE_CONFIG = {
   // GitHub Pages のプロジェクトサイト用（末尾スラッシュ付き）
   // 本番: https://shintaroutanaka324-jpg.github.io/kaumae/
   siteBasePath: "/kaumae/",
+  // Stripe Edge Functions 未デプロイ時は false にするとUIのみ確認可能
+  billingEnabled: true,
 };

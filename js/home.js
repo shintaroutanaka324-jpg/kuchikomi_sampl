@@ -95,8 +95,13 @@ function renderCategories() {
   ).join("");
 }
 
+function softenLongRuns(text) {
+  return String(text || "").replace(/(\S{24})(?=\S)/g, "$1\u200b");
+}
+
 function excerptText(text, maxLen = 100) {
-  const chars = [...String(text || "").trim()];
+  const softened = softenLongRuns(String(text || "").trim());
+  const chars = [...softened];
   if (!chars.length) return "";
   if (chars.length <= maxLen) return chars.join("");
   return `${chars.slice(0, maxLen).join("")}…`;

@@ -58,7 +58,9 @@
     }
     const { data, error } = await client
       .from("profiles")
-      .select("display_name, email, is_admin, is_paid_member")
+      .select(
+        "display_name, email, is_admin, is_paid_member, is_paid, has_posted_review, subscription_status, stripe_subscription_id"
+      )
       .eq("id", userId)
       .maybeSingle();
 
@@ -339,7 +341,19 @@
   }
 
   function isPaidMember() {
-    return profile?.is_paid_member === true;
+    return profile?.is_paid === true || profile?.is_paid_member === true;
+  }
+
+  function hasPostedReview() {
+    return profile?.has_posted_review === true;
+  }
+
+  function getSubscriptionStatus() {
+    return profile?.subscription_status || null;
+  }
+
+  function getProfile() {
+    return profile;
   }
 
   async function refreshProfile() {
@@ -363,6 +377,9 @@
     isLoggedIn,
     isAdmin,
     isPaidMember,
+    hasPostedReview,
+    getSubscriptionStatus,
+    getProfile,
     refreshProfile,
     getClient,
     getUser,

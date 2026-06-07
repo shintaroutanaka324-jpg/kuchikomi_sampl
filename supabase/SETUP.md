@@ -89,7 +89,12 @@ where email = 'あなたの運営用メール@example.com';
 
 運営者でログイン後、ヘッダーメニューから **口コミ審査（運営）** → `/admin.html` にアクセスできます。
 
-## 7. 動作確認
+## 7. Stripe 課金（月額880円）
+
+口コミ全文閲覧の有料プランは `supabase/STRIPE-SETUP.md` を参照してください。  
+先に `schema-stripe.sql` を SQL Editor で実行してください。
+
+## 8. 動作確認
 
 ### ユーザー登録
 

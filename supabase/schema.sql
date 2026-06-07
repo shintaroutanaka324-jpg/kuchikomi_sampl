@@ -6,6 +6,11 @@ create table if not exists public.profiles (
   display_name text not null,
   email text not null,
   is_paid_member boolean not null default false,
+  is_paid boolean not null default false,
+  has_posted_review boolean not null default false,
+  stripe_customer_id text,
+  stripe_subscription_id text,
+  subscription_status text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

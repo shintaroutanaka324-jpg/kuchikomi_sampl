@@ -118,6 +118,10 @@
       localStorage.setItem("reviewsUnlocked", "true");
       return true;
     }
+    if (window.Auth.hasPostedReview?.()) {
+      localStorage.setItem("reviewsUnlocked", "true");
+      return true;
+    }
     const has = await userHasSubmissions();
     if (has) {
       localStorage.setItem("reviewsUnlocked", "true");
@@ -132,9 +136,9 @@
   async function getReviewAccessState() {
     const loggedIn = window.Auth?.isLoggedIn?.() ?? false;
     const isPaidMember = window.Auth?.isPaidMember?.() ?? false;
-    let hasPostedReview = false;
+    let hasPostedReview = window.Auth?.hasPostedReview?.() ?? false;
 
-    if (loggedIn) {
+    if (loggedIn && !hasPostedReview) {
       hasPostedReview = await userHasSubmissions();
     }
 
@@ -290,6 +294,9 @@
     }
 
     localStorage.setItem("reviewsUnlocked", "true");
+    if (window.Auth?.refreshProfile) {
+      await window.Auth.refreshProfile();
+    }
     return created;
   }
 
