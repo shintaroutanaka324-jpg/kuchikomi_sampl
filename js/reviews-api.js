@@ -345,6 +345,25 @@
     return data || [];
   }
 
+  async function getPendingReviewCount() {
+    if (!window.Auth?.isConfigured?.()) return 0;
+    if (!window.Auth.isAdmin?.()) return 0;
+
+    const client = getClient();
+    if (!client) return 0;
+
+    const { count, error } = await client
+      .from("submitted_reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "pending");
+
+    if (error) {
+      console.warn("[カウマエ] 審査待ち件数の取得エラー", error.message);
+      return 0;
+    }
+    return count || 0;
+  }
+
   async function getReviewHistory(status) {
     ensureConfigured();
     if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
@@ -576,6 +595,7 @@
     getReviewAccessState,
     getMyReviews,
     getPendingReviews,
+    getPendingReviewCount,
     getReviewHistory,
     getAllReviewsAdmin,
     getProofSignedUrl,

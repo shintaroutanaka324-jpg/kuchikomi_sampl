@@ -20,7 +20,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const contentRoot = AdminShell.mount(app, {
+    const contentRoot = await AdminShell.mount(app, {
       active: "services",
       pageTitle: "サービス管理",
       pageSubtitle: "登録サービスの監視・編集・公開設定",

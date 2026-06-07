@@ -487,9 +487,16 @@ async function loadTab(tab) {
 
     bindCardEvents();
     bindEditorHints();
+    await refreshPendingBadges();
   } catch (err) {
     document.getElementById("admin-review-filters").innerHTML = "";
     root.innerHTML = `<div class="admin-empty">${App.escapeHtml(err.message)}</div>`;
+  }
+}
+
+async function refreshPendingBadges() {
+  if (window.AdminPendingCount?.refresh) {
+    await AdminPendingCount.refresh();
   }
 }
 
@@ -633,5 +640,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     btn.addEventListener("click", () => loadTab(btn.dataset.tab));
   });
 
-  await loadTab("all");
+  const initialTab = App.getQueryParam("tab") || "all";
+  const validTabs = ["all", "pending", "approved", "rejected"];
+  await loadTab(validTabs.includes(initialTab) ? initialTab : "all");
+  await refreshPendingBadges();
 });

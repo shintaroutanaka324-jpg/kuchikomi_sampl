@@ -32,7 +32,8 @@
     const links = NAV.map((item) => {
       const active = item.id === activeId;
       const soon = item.soon ? ' <span style="font-size:0.65rem;color:#9ca3af">(準備中)</span>' : "";
-      return `<a href="${item.href}" class="adm-nav-item ${active ? "active" : ""} ${item.soon ? "is-disabled" : ""}">${navIcon(item.icon || "grid")}${App.escapeHtml(item.label)}${soon}</a>`;
+      const pendingAttr = item.id === "reviews" ? ' data-pending-badge="reviews-nav"' : "";
+      return `<a href="${item.href}" class="adm-nav-item ${active ? "active" : ""} ${item.soon ? "is-disabled" : ""}"${pendingAttr}>${navIcon(item.icon || "grid")}<span class="adm-nav-label">${App.escapeHtml(item.label)}${soon}</span></a>`;
     }).join("");
 
     return `
@@ -55,10 +56,9 @@
           <input type="search" id="adm-global-search" placeholder="${App.escapeHtml(searchPlaceholder)}" autocomplete="off" />
         </div>
         <div class="adm-topbar-actions">
-          <button type="button" class="adm-icon-btn" title="通知" aria-label="通知">
+          <a href="admin.html?tab=pending" class="adm-icon-btn adm-icon-btn--notify" id="adm-notify-btn" title="審査待ちの口コミ" aria-label="審査待ち通知">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-            <span class="adm-notify-dot"></span>
-          </button>
+          </a>
           <div class="adm-user-chip">
             <span class="adm-user-avatar">${App.escapeHtml(getUserInitial())}</span>
             <div class="adm-user-meta">
@@ -70,7 +70,7 @@
       </header>`;
   }
 
-  function mount(container, options = {}) {
+  async function mount(container, options = {}) {
     const { active = "services", pageTitle = "", pageSubtitle = "" } = options;
 
     container.className = "adm-app";
@@ -105,6 +105,10 @@
         clearTimeout(timer);
         timer = setTimeout(() => options.onSearch(searchInput.value.trim()), 200);
       });
+    }
+
+    if (window.AdminPendingCount?.refresh) {
+      await AdminPendingCount.refresh();
     }
 
     return document.getElementById("admin-page-content");

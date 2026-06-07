@@ -50,6 +50,28 @@
   border-color: var(--trust-600);
 }
 
+.admin-tab {
+  position: relative;
+}
+
+.admin-tab .adm-pending-badge {
+  margin-left: 0.35rem;
+  vertical-align: middle;
+}
+
+.admin-tab.active .adm-pending-badge {
+  background: #fff;
+  color: #dc2626;
+}
+
+.dropdown--account a[data-pending-badge],
+.mobile-account-link[data-pending-badge] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
 .admin-empty {
   padding: 3rem 1.5rem;
   text-align: center;

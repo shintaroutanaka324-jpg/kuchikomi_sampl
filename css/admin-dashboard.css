@@ -59,6 +59,7 @@
   display: flex;
   align-items: center;
   gap: 0.65rem;
+  width: 100%;
   padding: 0.55rem 0.75rem;
   margin-bottom: 0.15rem;
   border-radius: 10px;
@@ -186,15 +187,50 @@
   color: #111827;
 }
 
-.adm-notify-dot {
+.adm-icon-btn--notify {
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+
+.adm-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.35rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #fff;
+  background: #dc2626;
+  border-radius: 999px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.adm-nav-item {
+  position: relative;
+}
+
+.adm-nav-item .adm-nav-label {
+  flex: 1;
+}
+
+.adm-nav-item .adm-pending-badge {
+  margin-left: auto;
+}
+
+.adm-pending-badge--notify {
   position: absolute;
-  top: 0.35rem;
-  right: 0.35rem;
-  width: 0.45rem;
-  height: 0.45rem;
-  background: #ef4444;
-  border-radius: 50%;
+  top: -0.2rem;
+  right: -0.2rem;
+  min-width: 1rem;
+  height: 1rem;
+  padding: 0 0.25rem;
+  font-size: 0.625rem;
   border: 2px solid #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 .adm-user-chip {
