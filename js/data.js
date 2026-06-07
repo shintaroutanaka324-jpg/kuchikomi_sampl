@@ -455,25 +455,36 @@ function getCategoryLabel(value) {
 
 let _dbProductsPublished = [];
 let _dbProductsAdmin = [];
+let _dbProductRegistry = [];
 
 /** 公開サイト用: 公開中の DB サービスのみ */
 function setDbProducts(products) {
   _dbProductsPublished = Array.isArray(products) ? products : [];
 }
 
+/** DB 上の全サービス id（公開サイトでデモとの重複判定に使用） */
+function setDbProductRegistry(entries) {
+  _dbProductRegistry = Array.isArray(entries) ? entries : [];
+}
+
 /** 運営画面用: 公開・非公開を含む DB サービス */
 function setDbProductsAdmin(products) {
   _dbProductsAdmin = Array.isArray(products) ? products : [];
+  if (typeof setDbProductRegistry === "function") {
+    setDbProductRegistry(
+      products.map((p) => ({
+        id: p.id,
+        isPublished: p.isPublished !== false,
+      }))
+    );
+  }
 }
 
 /** 静的データ（data.js）と DB 登録サービスを統合（公開サイト向け） */
 function getAllProducts() {
   const publishedDb = _dbProductsPublished;
-  const suppressedStaticIds = new Set(
-    _dbProductsAdmin.filter((p) => p.isPublished === false).map((p) => p.id)
-  );
-  const dbIds = new Set(publishedDb.map((p) => p.id));
-  const staticOnly = PRODUCTS.filter((p) => !dbIds.has(p.id) && !suppressedStaticIds.has(p.id));
+  const overriddenStaticIds = new Set(_dbProductRegistry.map((p) => p.id));
+  const staticOnly = PRODUCTS.filter((p) => !overriddenStaticIds.has(p.id));
   return [...publishedDb, ...staticOnly];
 }
 

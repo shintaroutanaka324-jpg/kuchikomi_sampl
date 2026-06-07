@@ -72,28 +72,56 @@
     return `p-${Date.now().toString(36)}`;
   }
 
+  function applyProductRegistry(rows) {
+    if (typeof setDbProductRegistry !== "function") return;
+    setDbProductRegistry(
+      (rows || []).map((row) => ({
+        id: row.id,
+        isPublished: row.is_published !== false,
+      }))
+    );
+  }
+
   async function loadPublishedProducts() {
     if (!window.Auth?.isConfigured?.()) {
       if (typeof setDbProducts === "function") setDbProducts([]);
+      if (typeof setDbProductRegistry === "function") setDbProductRegistry([]);
       return [];
     }
     const client = getClient();
     if (!client) return [];
 
-    const { data, error } = await client
-      .from("products")
-      .select("*")
-      .eq("is_published", true)
-      .order("created_at", { ascending: false });
+    const [publishedResult, registryResult] = await Promise.all([
+      client
+        .from("products")
+        .select("*")
+        .eq("is_published", true)
+        .order("created_at", { ascending: false }),
+      client.from("products").select("id, is_published"),
+    ]);
 
-    if (error) {
-      console.warn("[カウマエ] サービス一覧の取得に失敗", error.message);
+    if (publishedResult.error) {
+      console.warn("[カウマエ] サービス一覧の取得に失敗", publishedResult.error.message);
       if (typeof setDbProducts === "function") setDbProducts([]);
+      if (typeof setDbProductRegistry === "function") setDbProductRegistry([]);
       return [];
     }
 
-    const products = (data || []).map(rowToProduct);
+    const products = (publishedResult.data || []).map(rowToProduct);
     if (typeof setDbProducts === "function") setDbProducts(products);
+
+    if (!registryResult.error && registryResult.data) {
+      applyProductRegistry(registryResult.data);
+    } else {
+      if (registryResult.error) {
+        console.warn(
+          "[カウマエ] サービス登録一覧の取得に失敗（非公開のデモが残る場合は schema-products-public-registry.sql を実行）",
+          registryResult.error.message
+        );
+      }
+      applyProductRegistry(publishedResult.data || []);
+    }
+
     return products;
   }
 

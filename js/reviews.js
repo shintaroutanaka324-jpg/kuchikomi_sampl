@@ -28,10 +28,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   let selectedRating = "";
   let selectedReviewCount = "";
 
-  const allProducts = getAllProducts().map((product) => ({
-    product,
-    stats: getProductDisplayStats(product),
-  }));
+  function getProductEntries() {
+    return getAllProducts().map((product) => ({
+      product,
+      stats: getProductDisplayStats(product),
+    }));
+  }
 
   renderFilterUI();
   renderPopularTags();
@@ -117,7 +119,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function filterProducts() {
-    let list = [...allProducts];
+    let list = [...getProductEntries()];
     const search = searchQuery.toLowerCase();
     const sort = sortSelect.value;
     const proofOnly = proofCheckbox.checked;
@@ -250,7 +252,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderRanking() {
-    const ranked = [...allProducts]
+    const ranked = [...getProductEntries()]
       .sort((a, b) => b.stats.displayCount - a.stats.displayCount)
       .slice(0, 5);
 

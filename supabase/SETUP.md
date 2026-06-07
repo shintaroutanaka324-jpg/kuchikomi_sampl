@@ -71,7 +71,12 @@ http://localhost:5500/kaumae/**
 SQL Editor で `supabase/schema-email-check.sql` を実行してください。  
 登録済みメールで新規登録しようとしたときに、正しくエラーを表示できます。
 
-## 6. 口コミ投稿・審査のセットアップ
+## 6. サービス管理のセットアップ
+
+1. SQL Editor で `supabase/schema-products.sql` を実行
+2. 続けて `supabase/schema-products-public-registry.sql` も実行（**非公開サービスを公開サイトから隠す場合に必須**）
+
+## 7. 口コミ投稿・審査のセットアップ
 
 1. SQL Editor で `supabase/schema-reviews.sql` を実行
 2. 続けて `supabase/schema-reviews-fields.sql` も実行（口コミ項目の追加）
@@ -92,12 +97,12 @@ where email = 'あなたの運営用メール@example.com';
 
 運営者でログイン後、ヘッダーメニューから **口コミ審査（運営）** → `/admin.html`（運営ダッシュボード内）にアクセスできます。
 
-## 7. Stripe 課金（月額880円）
+## 8. Stripe 課金（月額880円）
 
 口コミ全文閲覧の有料プランは `supabase/STRIPE-SETUP.md` を参照してください。  
 先に `schema-stripe.sql` を SQL Editor で実行してください。
 
-## 8. 動作確認
+## 9. 動作確認
 
 ### ユーザー登録
 
