@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ダッシュボード | カウマエ 運営</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/admin-dashboard.css" />
+</head>
+<body class="adm-dash-body">
+  <div id="admin-app"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/supabase-config.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/products-api.js"></script>
+  <script src="js/reviews-api.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/admin-dashboard-stats.js"></script>
+  <script src="js/admin-shell.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      const app = document.getElementById("admin-app");
+      await App.whenReady();
+      if (!Auth.isLoggedIn()) {
+        window.location.href = "login.html?redirect=admin-dashboard.html";
+        return;
+      }
+      if (!Auth.isAdmin()) {
+        app.innerHTML = '<div class="adm-empty-state" style="padding:4rem">運営者権限が必要です</div>';
+        return;
+      }
+
+      const root = AdminShell.mount(app, {
+        active: "dashboard",
+        pageTitle: "ダッシュボード",
+        pageSubtitle: "カウマエ運営の概要",
+      });
+
+      await ProductsApi.whenReady?.();
+      await ReviewsApi.whenReady?.();
+
+      const products =
+        typeof getAllProducts === "function" ? getAllProducts() : PRODUCTS || [];
+      const kpis = await AdminDashboardStats.computeKpis(
+        products.map((p) => ({ ...p, source: p.isDbProduct ? "db" : "static" }))
+      );
+      const latest = AdminDashboardStats.getLatestReviews(8);
+      const catStats = AdminDashboardStats.buildCategoryStats(products);
+
+      const feed = latest
+        .map(
+          (r) => `<div class="adm-review-feed-item">
+            <div class="adm-review-feed-title">${App.escapeHtml(r.name)}</div>
+            <div class="adm-review-feed-meta">${AdminDashboardStats.renderStars(r.rating)} · ${App.escapeHtml(AdminDashboardStats.formatRelativeTime(r.time))}</div>
+          </div>`
+        )
+        .join("");
+
+      const kpiHtml = ["services", "reviews", "users", "monthlyPv", "avgRating"]
+        .map((key) => {
+          const labels = {
+            services: "登録サービス数",
+            reviews: "口コミ数",
+            users: "ユーザー数",
+            monthlyPv: "月間PV",
+            avgRating: "平均評価",
+          };
+          const k = kpis[key];
+          return `<div class="adm-kpi-card"><div class="adm-kpi-label">${labels[key]}</div><div class="adm-kpi-value">${k.value}</div><div class="adm-kpi-delta ${k.delta.cls}">${k.delta.text}</div></div>`;
+        })
+        .join("");
+
+      root.innerHTML = `
+        <div class="adm-kpi-row">${kpiHtml}</div>
+        <div class="adm-grid">
+          <div class="adm-panel">
+            <div class="adm-panel-head"><h3 class="adm-panel-title">クイックリンク</h3></div>
+            <div class="adm-panel-body adm-quick-actions">
+              <a href="admin-services.html" class="adm-quick-btn is-primary">サービス管理へ</a>
+              <a href="admin.html" class="adm-quick-btn">口コミ審査へ</a>
+              <a href="admin-withdrawals.html" class="adm-quick-btn">退会ユーザー管理</a>
+            </div>
+          </div>
+          <div class="adm-aside">
+            <div class="adm-panel">
+              <div class="adm-panel-head"><h3 class="adm-panel-title">最新口コミ</h3></div>
+              <div class="adm-panel-body">${feed}</div>
+            </div>
+            <div class="adm-panel">
+              <div class="adm-panel-head"><h3 class="adm-panel-title">カテゴリ分析</h3></div>
+              <div class="adm-panel-body">
+                <div class="adm-donut-wrap">
+                  <div class="adm-donut" style="background:conic-gradient(${catStats.gradient})"></div>
+                  <div class="adm-donut-legend">${catStats.items.map((i) => `<div class="adm-legend-item"><span class="adm-legend-dot" style="background:${i.color}"></span>${App.escapeHtml(i.label)}<span style="margin-left:auto;color:#9ca3af">${i.services}/${i.reviews}</span></div>`).join("")}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>`;
+    });
+  </script>
+</body>
+</html>
