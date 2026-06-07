@@ -453,17 +453,35 @@ function getCategoryLabel(value) {
   return CATEGORIES.find((c) => c.value === value)?.label || value;
 }
 
-let _dbProducts = [];
+let _dbProductsPublished = [];
+let _dbProductsAdmin = [];
 
+/** 公開サイト用: 公開中の DB サービスのみ */
 function setDbProducts(products) {
-  _dbProducts = Array.isArray(products) ? products : [];
+  _dbProductsPublished = Array.isArray(products) ? products : [];
 }
 
-/** 静的データ（data.js）と DB 登録サービスを統合 */
+/** 運営画面用: 公開・非公開を含む DB サービス */
+function setDbProductsAdmin(products) {
+  _dbProductsAdmin = Array.isArray(products) ? products : [];
+}
+
+/** 静的データ（data.js）と DB 登録サービスを統合（公開サイト向け） */
 function getAllProducts() {
-  const dbIds = new Set(_dbProducts.map((p) => p.id));
+  const publishedDb = _dbProductsPublished;
+  const suppressedStaticIds = new Set(
+    _dbProductsAdmin.filter((p) => p.isPublished === false).map((p) => p.id)
+  );
+  const dbIds = new Set(publishedDb.map((p) => p.id));
+  const staticOnly = PRODUCTS.filter((p) => !dbIds.has(p.id) && !suppressedStaticIds.has(p.id));
+  return [...publishedDb, ...staticOnly];
+}
+
+/** 運営画面向け: 非公開 DB サービスとデモデータを統合 */
+function getAllProductsAdmin() {
+  const dbIds = new Set(_dbProductsAdmin.map((p) => p.id));
   const staticOnly = PRODUCTS.filter((p) => !dbIds.has(p.id));
-  return [..._dbProducts, ...staticOnly];
+  return [..._dbProductsAdmin, ...staticOnly];
 }
 
 function getProductById(id) {

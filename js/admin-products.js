@@ -518,17 +518,16 @@
       await api.loadAllProductsAdmin();
     } catch (err) {
       dbError = err;
-      if (typeof setDbProducts === "function") setDbProducts([]);
+      if (typeof setDbProductsAdmin === "function") setDbProductsAdmin([]);
     }
-    try {
-      await api.loadPublishedProducts();
-    } catch (_) {}
     const all =
-      typeof getAllProducts === "function"
-        ? getAllProducts()
-        : typeof PRODUCTS !== "undefined"
-          ? PRODUCTS
-          : [];
+      typeof getAllProductsAdmin === "function"
+        ? getAllProductsAdmin()
+        : typeof getAllProducts === "function"
+          ? getAllProducts()
+          : typeof PRODUCTS !== "undefined"
+            ? PRODUCTS
+            : [];
     return {
       products: all.map((p) => ({ ...p, source: p.isDbProduct ? "db" : "static" })),
       dbError,

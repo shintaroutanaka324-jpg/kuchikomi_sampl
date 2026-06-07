@@ -39,6 +39,7 @@
       refundPolicy: row.refund_policy || "なし",
       isDbProduct: true,
       isPublished: row.is_published !== false,
+      created_at: row.created_at || null,
     };
   }
 
@@ -109,8 +110,19 @@
 
     if (error) throw new Error(error.message);
     const products = (data || []).map(rowToProduct);
-    if (typeof setDbProducts === "function") setDbProducts(products);
+    if (typeof setDbProductsAdmin === "function") setDbProductsAdmin(products);
     return products;
+  }
+
+  async function refreshProductCaches() {
+    await loadPublishedProducts();
+    if (window.Auth?.isAdmin?.()) {
+      try {
+        await loadAllProductsAdmin();
+      } catch (_) {
+        /* 非運営コンテキストでは admin 一覧は不要 */
+      }
+    }
   }
 
   async function createProduct(input) {
@@ -143,7 +155,7 @@
       .single();
 
     if (error) throw new Error(error.message);
-    await loadPublishedProducts();
+    await refreshProductCaches();
     return rowToProduct(data);
   }
 
@@ -172,7 +184,7 @@
       .single();
 
     if (error) throw new Error(error.message);
-    await loadPublishedProducts();
+    await refreshProductCaches();
     return rowToProduct(data);
   }
 
@@ -189,7 +201,7 @@
       .select()
       .single();
     if (error) throw new Error(error.message);
-    await loadPublishedProducts();
+    await refreshProductCaches();
     return rowToProduct(data);
   }
 
@@ -201,7 +213,7 @@
     const client = getClient();
     const { error } = await client.from("products").delete().eq("id", id);
     if (error) throw new Error(error.message);
-    await loadPublishedProducts();
+    await refreshProductCaches();
   }
 
   function whenReady() {
