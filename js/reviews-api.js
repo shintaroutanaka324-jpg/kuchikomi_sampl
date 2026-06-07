@@ -458,6 +458,39 @@
     return data;
   }
 
+  async function deleteApprovedReview(id) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const client = getClient();
+    const { data: row, error: fetchErr } = await client
+      .from("submitted_reviews")
+      .select("id, status, purchase_proof_path")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!row) throw new Error("口コミが見つかりません");
+    if (row.status !== "approved") {
+      throw new Error("公開済みの口コミのみ削除できます");
+    }
+
+    const { error } = await client.from("submitted_reviews").delete().eq("id", id);
+    if (error) throw new Error(error.message);
+
+    if (row.purchase_proof_path) {
+      const { error: storageErr } = await client.storage
+        .from("purchase-proofs")
+        .remove([row.purchase_proof_path]);
+      if (storageErr) {
+        console.warn("[カウマエ] 購入証明の削除に失敗", storageErr.message);
+      }
+    }
+
+    await loadApprovedReviews();
+    return true;
+  }
+
   function statusLabel(status) {
     const map = {
       pending: "審査中",
@@ -480,6 +513,7 @@
     getProofSignedUrl,
     approveReview,
     rejectReview,
+    deleteApprovedReview,
     statusLabel,
     rowToLegacyReview,
     getApprovedCache: () => approvedCache,

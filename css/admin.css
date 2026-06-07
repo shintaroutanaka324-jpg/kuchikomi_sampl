@@ -261,6 +261,23 @@
   margin-bottom: 1.25rem;
 }
 
+.admin-actions--delete {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--gray-100);
+}
+
+.admin-btn-delete {
+  color: #b91c1c;
+  border-color: #fecaca;
+}
+
+.admin-btn-delete:hover {
+  background: #fef2f2;
+  border-color: #f87171;
+  color: #991b1b;
+}
+
 @media (max-width: 767px) {
   .admin-actions .btn {
     width: 100%;

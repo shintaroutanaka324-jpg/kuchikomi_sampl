@@ -89,7 +89,7 @@ function renderBodyEditors(row) {
     }).join("")}`;
 }
 
-function renderReviewCard(row, { showActions = false } = {}) {
+function renderReviewCard(row, { showActions = false, showDelete = false } = {}) {
   const statusClass = `admin-status--${row.status}`;
   const editedBadge = row.was_edited_by_admin
     ? '<span class="admin-edited-badge">運営が内容を修正して公開</span>'
@@ -151,6 +151,17 @@ function renderReviewCard(row, { showActions = false } = {}) {
         <div class="admin-actions">
           <button type="button" class="btn btn-trust" data-action="approve" data-id="${row.id}">修正内容を確認して公開</button>
           <button type="button" class="btn btn-outline" data-action="reject" data-id="${row.id}">却下</button>
+        </div>`
+          : ""
+      }
+
+      ${
+        showDelete
+          ? `
+        <div class="admin-actions admin-actions--delete">
+          <button type="button" class="btn btn-outline admin-btn-delete" data-action="delete-review" data-id="${row.id}">
+            サイトから削除
+          </button>
         </div>`
           : ""
       }
@@ -233,7 +244,12 @@ async function loadTab(tab) {
     }
 
     root.innerHTML = rows
-      .map((row) => renderReviewCard(row, { showActions: tab === "pending" }))
+      .map((row) =>
+        renderReviewCard(row, {
+          showActions: tab === "pending",
+          showDelete: tab === "approved",
+        })
+      )
       .join("");
 
     bindCardEvents();
@@ -297,6 +313,28 @@ function bindCardEvents() {
         await ReviewsApi.rejectReview(id, reason, adminNote);
         App.showToast("口コミを却下しました");
         await loadTab("pending");
+      } catch (err) {
+        App.showToast(err.message, "error");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-action='delete-review']").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      if (
+        !window.confirm(
+          "この口コミをサイトから完全に削除しますか？\n削除するとトップページやサービス詳細からも消え、元に戻せません。"
+        )
+      ) {
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await ReviewsApi.deleteApprovedReview(id);
+        App.showToast("口コミを削除しました");
+        await loadTab("approved");
       } catch (err) {
         App.showToast(err.message, "error");
         btn.disabled = false;
