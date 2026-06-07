@@ -11,7 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!Auth.isLoggedIn()) {
-      window.location.href = "login.html?redirect=admin-reviews.html";
+      window.location.href = "login.html?redirect=admin.html";
       return;
     }
 

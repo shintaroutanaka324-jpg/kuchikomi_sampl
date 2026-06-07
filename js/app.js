@@ -232,7 +232,7 @@
     html += `<a href="account-settings.html">アカウント設定</a>`;
     if (window.Auth?.isAdmin?.()) {
       html += `<a href="admin-dashboard.html">運営ダッシュボード</a>`;
-      html += `<a href="admin-reviews.html" data-pending-badge="account-review">口コミ審査（運営）</a>`;
+      html += `<a href="admin.html" data-pending-badge="account-review">口コミ審査（運営）</a>`;
       html += `<a href="admin-services.html">サービス管理（運営）</a>`;
       html += `<a href="admin-withdrawals.html">退会ユーザー管理（運営）</a>`;
     }
@@ -244,7 +244,7 @@
     html += `<a href="account-settings.html" class="mobile-account-link">アカウント設定</a>`;
     if (window.Auth?.isAdmin?.()) {
       html += `<a href="admin-dashboard.html" class="mobile-account-link">運営ダッシュボード</a>`;
-      html += `<a href="admin-reviews.html" class="mobile-account-link" data-pending-badge="account-review-mobile">口コミ審査（運営）</a>`;
+      html += `<a href="admin.html" class="mobile-account-link" data-pending-badge="account-review-mobile">口コミ審査（運営）</a>`;
       html += `<a href="admin-services.html" class="mobile-account-link">サービス管理（運営）</a>`;
       html += `<a href="admin-withdrawals.html" class="mobile-account-link">退会ユーザー管理（運営）</a>`;
     }
