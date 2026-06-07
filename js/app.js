@@ -7,7 +7,20 @@
           resolve();
           return;
         }
-        existing.addEventListener("load", () => resolve(), { once: true });
+        // HTML に直書きされた同期 script は既に実行済み（load は発火済みで待ち続けるとハングする）
+        if (!existing.async && !existing.defer) {
+          existing.dataset.loaded = "true";
+          resolve();
+          return;
+        }
+        existing.addEventListener(
+          "load",
+          () => {
+            existing.dataset.loaded = "true";
+            resolve();
+          },
+          { once: true }
+        );
         existing.addEventListener("error", () => reject(new Error(`Failed to load ${src}`)), { once: true });
         return;
       }
