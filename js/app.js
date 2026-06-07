@@ -27,11 +27,25 @@
     await loadScript("js/supabase-config.js");
     await loadScript("js/auth.js");
     await window.Auth.whenReady();
-    await loadScript("js/reviews-api.js");
-    await window.ReviewsApi?.whenReady?.();
-    await loadScript("js/products-api.js");
-    await window.ProductsApi?.whenReady?.();
-    await loadScript("js/billing-api.js");
+    try {
+      await loadScript("js/reviews-api.js");
+      await window.ReviewsApi?.whenReady?.();
+    } catch (err) {
+      console.warn("[カウマエ] reviews-api の読み込みをスキップ", err);
+    }
+    try {
+      if (!window.ProductsApi) {
+        await loadScript("js/products-api.js");
+      }
+      await window.ProductsApi?.whenReady?.();
+    } catch (err) {
+      console.warn("[カウマエ] products-api の読み込みをスキップ", err);
+    }
+    try {
+      await loadScript("js/billing-api.js");
+    } catch (err) {
+      console.warn("[カウマエ] billing-api の読み込みをスキップ", err);
+    }
   })();
 
   function whenReady() {

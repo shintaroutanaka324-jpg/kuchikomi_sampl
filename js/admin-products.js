@@ -196,11 +196,11 @@
 
       try {
         if (editingId) {
-          await ProductsApi.updateProduct(editingId, data);
+          await (await ensureProductsApi()).updateProduct(editingId, data);
           App.showToast("サービスを更新しました");
           editingId = null;
         } else {
-          await ProductsApi.createProduct(data);
+          await (await ensureProductsApi()).createProduct(data);
           App.showToast("サービスを追加しました");
         }
         await render(root);
@@ -235,7 +235,7 @@
         const publish = btn.dataset.published !== "true";
         btn.disabled = true;
         try {
-          await ProductsApi.setProductPublished(id, publish);
+          await (await ensureProductsApi()).setProductPublished(id, publish);
           App.showToast(publish ? "サービスを公開しました" : "サービスを非公開にしました");
           await render(root);
         } catch (error) {
@@ -253,7 +253,7 @@
         }
         btn.disabled = true;
         try {
-          await ProductsApi.deleteProduct(id);
+          await (await ensureProductsApi()).deleteProduct(id);
           if (editingId === id) editingId = null;
           App.showToast("サービスを削除しました");
           await render(root);
@@ -265,10 +265,19 @@
     });
   }
 
+  async function ensureProductsApi() {
+    await App.whenReady();
+    if (window.ProductsApi) return window.ProductsApi;
+    throw new Error(
+      "サービス管理の読み込みに失敗しました。ページを再読み込みしてください。"
+    );
+  }
+
   async function render(root, editForm = null) {
     root.innerHTML = `<p class="admin-empty">読み込み中...</p>`;
     try {
-      const products = await ProductsApi.loadAllProductsAdmin();
+      const api = await ensureProductsApi();
+      const products = await api.loadAllProductsAdmin();
       const formData = editForm
         ? {
             title: editForm.title,
