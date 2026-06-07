@@ -391,6 +391,17 @@
   margin-bottom: 1.25rem;
 }
 
+.admin-service-filter {
+  max-width: 100%;
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .admin-service-filter {
+    max-width: 28rem;
+  }
+}
+
 .admin-product-source {
   display: inline-block;
   padding: 0.1rem 0.45rem;

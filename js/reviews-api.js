@@ -405,7 +405,24 @@
     }
   }
 
-  async function approveReview(id, { productId, adminNote, content, wasEdited } = {}) {
+  function applyAdminContentToPayload(payload, content) {
+    if (!content) return payload;
+    const beforeText = (content.body_before ?? content.body_situation ?? "").trim();
+    const numericText = (content.numeric_results ?? content.body_numeric ?? "").trim() || null;
+    payload.body_pros = content.body_pros.trim();
+    payload.body_concerns = content.body_concerns.trim();
+    payload.body_before = beforeText;
+    payload.body_situation = beforeText;
+    payload.body_results = content.body_results.trim();
+    payload.body_learnings = content.body_results.trim();
+    payload.body_recommend = content.body_recommend.trim();
+    payload.numeric_results = numericText;
+    payload.body_numeric = numericText;
+    payload.body_other = content.body_other?.trim() || null;
+    return payload;
+  }
+
+  async function approveReview(id, { productId, adminNote, content, wasEdited, productName } = {}) {
     ensureConfigured();
     if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
 
@@ -421,23 +438,59 @@
       rejection_reason: null,
       admin_note: adminNote || null,
       was_edited_by_admin: Boolean(wasEdited),
+      updated_at: new Date().toISOString(),
     };
-    if (productId) payload.product_id = productId;
+    if (productId) {
+      payload.product_id = productId;
+      if (productName) payload.product_name = productName;
+    }
+
+    applyAdminContentToPayload(payload, content);
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) throw new Error(error.message);
+    await loadApprovedReviews();
+    return data;
+  }
+
+  async function updateReviewAdmin(id, { productId, productName, adminNote, content, wasEdited } = {}) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
 
     if (content) {
-      const beforeText = (content.body_before ?? content.body_situation ?? "").trim();
-      const numericText = (content.numeric_results ?? content.body_numeric ?? "").trim() || null;
-      payload.body_pros = content.body_pros.trim();
-      payload.body_concerns = content.body_concerns.trim();
-      payload.body_before = beforeText;
-      payload.body_situation = beforeText;
-      payload.body_results = content.body_results.trim();
-      payload.body_learnings = content.body_results.trim();
-      payload.body_recommend = content.body_recommend.trim();
-      payload.numeric_results = numericText;
-      payload.body_numeric = numericText;
-      payload.body_other = content.body_other?.trim() || null;
+      validateAdminReviewContent(content);
     }
+
+    const { data: existing, error: fetchErr } = await getClient()
+      .from("submitted_reviews")
+      .select("id, status, was_edited_by_admin")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!existing) throw new Error("口コミが見つかりません");
+    if (existing.status === "pending") {
+      throw new Error("審査待ちの口コミは「公開」操作で更新してください");
+    }
+
+    const payload = {
+      admin_note: adminNote || null,
+      was_edited_by_admin: Boolean(wasEdited) || existing.was_edited_by_admin === true,
+      updated_at: new Date().toISOString(),
+    };
+
+    if (productId !== undefined) {
+      payload.product_id = productId || null;
+      if (productName) payload.product_name = productName;
+    }
+
+    applyAdminContentToPayload(payload, content);
 
     const { data, error } = await getClient()
       .from("submitted_reviews")
@@ -527,6 +580,7 @@
     getAllReviewsAdmin,
     getProofSignedUrl,
     approveReview,
+    updateReviewAdmin,
     rejectReview,
     deleteApprovedReview,
     statusLabel,

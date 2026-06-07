@@ -18,7 +18,8 @@ const EDITABLE_BODY_FIELDS = [
 
 let currentTab = "all";
 let categoryFilter = "all";
-const pendingRowsById = new Map();
+let serviceFilter = "all";
+const editableRowsById = new Map();
 
 function formatPeriod(row) {
   if (!row.purchase_year || !row.purchase_month) return "—";
@@ -87,12 +88,59 @@ function annotateReviewRows(rows) {
   }));
 }
 
-function filterReviewsByCategory(rows) {
-  if (categoryFilter === "all") return rows;
-  return rows.filter((row) => getReviewCategory(row) === categoryFilter);
+function getReviewServiceKey(row) {
+  if (row.product_id) return row.product_id;
+  if (row.product_name) return `name:${row.product_name}`;
+  return "__unlinked__";
 }
 
-function renderCategoryFilters(allRows, filteredCount) {
+function getReviewServiceLabel(row) {
+  if (row.product_id && typeof getProductById === "function") {
+    const product = getProductById(row.product_id);
+    if (product?.title) return product.title;
+  }
+  return row.product_name || "（サービス未紐づけ）";
+}
+
+function resolveProductName(productId) {
+  if (!productId) return null;
+  const list = typeof getAllProducts === "function" ? getAllProducts() : PRODUCTS || [];
+  return list.find((p) => p.id === productId)?.title || null;
+}
+
+function filterReviews(rows) {
+  let result = rows;
+  if (categoryFilter !== "all") {
+    result = result.filter((row) => getReviewCategory(row) === categoryFilter);
+  }
+  if (serviceFilter !== "all") {
+    result = result.filter((row) => getReviewServiceKey(row) === serviceFilter);
+  }
+  return result;
+}
+
+function buildServiceFilterOptions(allRows) {
+  const baseRows =
+    categoryFilter === "all"
+      ? allRows
+      : allRows.filter((row) => getReviewCategory(row) === categoryFilter);
+
+  const map = new Map();
+  baseRows.forEach((row) => {
+    const key = getReviewServiceKey(row);
+    const label = getReviewServiceLabel(row);
+    if (!map.has(key)) {
+      map.set(key, { label, count: 0 });
+    }
+    map.get(key).count += 1;
+  });
+
+  return Array.from(map.entries())
+    .sort((a, b) => a[1].label.localeCompare(b[1].label, "ja"))
+    .map(([key, info]) => ({ key, ...info }));
+}
+
+function renderReviewFilters(allRows, filteredCount) {
   const el = document.getElementById("admin-review-filters");
   if (!el) return;
 
@@ -116,18 +164,37 @@ function renderCategoryFilters(allRows, filteredCount) {
     });
   }
 
+  const serviceOptions = buildServiceFilterOptions(allRows);
+  const serviceSelectOptions = [
+    `<option value="all">すべてのサービス（${serviceOptions.reduce((n, s) => n + s.count, 0)}件）</option>`,
+    ...serviceOptions.map(
+      (s) =>
+        `<option value="${App.escapeHtml(s.key)}" ${serviceFilter === s.key ? "selected" : ""}>${App.escapeHtml(s.label)}（${s.count}件）</option>`
+    ),
+  ];
+
   el.innerHTML = `
     <div class="admin-filter-section">
       <p class="admin-filter-label">ジャンルで絞り込み</p>
       <div class="admin-filter-bar admin-filter-bar--scroll">${chips.join("")}</div>
-      <p class="admin-product-hint">表示中: ${filteredCount}件${filteredCount !== allRows.length ? `（全${allRows.length}件中）` : ""}</p>
-    </div>`;
+    </div>
+    <div class="admin-filter-section">
+      <p class="admin-filter-label">サービスで絞り込み</p>
+      <select id="admin-service-filter" class="form-input admin-service-filter">${serviceSelectOptions.join("")}</select>
+    </div>
+    <p class="admin-product-hint">表示中: ${filteredCount}件${filteredCount !== allRows.length ? `（全${allRows.length}件中）` : ""}</p>`;
 
   el.querySelectorAll("[data-review-category]").forEach((btn) => {
     btn.addEventListener("click", () => {
       categoryFilter = btn.dataset.reviewCategory || "all";
+      serviceFilter = "all";
       loadTab(currentTab);
     });
+  });
+
+  document.getElementById("admin-service-filter")?.addEventListener("change", (e) => {
+    serviceFilter = e.target.value || "all";
+    loadTab(currentTab);
   });
 }
 
@@ -160,10 +227,13 @@ function renderBodyReadOnly(row) {
   }).join("");
 }
 
-function renderBodyEditors(row) {
+function renderBodyEditors(row, { postPublish = false } = {}) {
+  const note = postPublish
+    ? "公開済みの口コミを運営が修正できます。保存するとサイトに反映され、修正記録が残ります。"
+    : "不適切な表現がある場合は、内容を修正してから公開してください。修正した箇所は記録されます。";
   return `
     <div class="admin-edit-note">
-      <p>不適切な表現がある場合は、内容を修正してから公開してください。修正した箇所は記録されます。</p>
+      <p>${note}</p>
     </div>
     ${EDITABLE_BODY_FIELDS.map((field) => {
       const value = getBodyFieldValue(row, field.key);
@@ -185,11 +255,12 @@ function renderBodyEditors(row) {
     }).join("")}`;
 }
 
-function renderReviewCard(row, { showActions = false, showDelete = false } = {}) {
+function renderReviewCard(row, { showActions = false, showEditActions = false, showDelete = false } = {}) {
+  const showEditors = showActions || showEditActions;
   const isStatic = row._isStatic === true;
   const statusClass = `admin-status--${row.status}`;
   const editedBadge = row.was_edited_by_admin
-    ? '<span class="admin-edited-badge">運営が内容を修正して公開</span>'
+    ? '<span class="admin-edited-badge">運営が内容を修正済み</span>'
     : "";
   const staticBadge = isStatic
     ? '<span class="admin-product-source admin-product-source--static">デモデータ</span>'
@@ -221,7 +292,7 @@ function renderReviewCard(row, { showActions = false, showDelete = false } = {})
       <h3 class="admin-section-title">評価</h3>
       <div class="admin-ratings">${renderRatings(row)}</div>
 
-      ${showActions ? renderBodyEditors(row) : renderBodyReadOnly(row)}
+      ${showEditors ? renderBodyEditors(row, { postPublish: showEditActions }) : renderBodyReadOnly(row)}
 
       ${
         !isStatic && row.purchase_proof_path
@@ -270,6 +341,26 @@ function renderReviewCard(row, { showActions = false, showDelete = false } = {})
         <div class="admin-actions">
           <button type="button" class="btn btn-trust" data-action="approve" data-id="${row.id}">修正内容を確認して公開</button>
           <button type="button" class="btn btn-outline" data-action="reject" data-id="${row.id}">却下</button>
+        </div>`
+          : ""
+      }
+
+      ${
+        showEditActions
+          ? `
+        <div class="admin-field">
+          <label for="product-${row.id}">掲載先サービス</label>
+          <select id="product-${row.id}" class="form-input">
+            <option value="">— 未紐づけ —</option>
+            ${productOptions(row.product_id)}
+          </select>
+        </div>
+        <div class="admin-field">
+          <label for="note-${row.id}">運営メモ（非公開）</label>
+          <textarea id="note-${row.id}" class="form-textarea" rows="2" placeholder="修正理由や内部メモ">${App.escapeHtml(row.admin_note || "")}</textarea>
+        </div>
+        <div class="admin-actions">
+          <button type="button" class="btn btn-trust" data-action="save-review" data-id="${row.id}">変更を保存</button>
         </div>`
           : ""
       }
@@ -363,34 +454,39 @@ async function loadTab(tab) {
 
   try {
     const allRows = await fetchReviewsForTab(tab);
-    const filtered = filterReviewsByCategory(allRows);
+    const serviceOptions = buildServiceFilterOptions(allRows);
+    if (serviceFilter !== "all" && !serviceOptions.some((s) => s.key === serviceFilter)) {
+      serviceFilter = "all";
+    }
+    const filtered = filterReviews(allRows);
 
-    renderCategoryFilters(allRows, filtered.length);
+    renderReviewFilters(allRows, filtered.length);
 
-    pendingRowsById.clear();
+    editableRowsById.clear();
 
     if (!filtered.length) {
       root.innerHTML = `<div class="admin-empty">表示する口コミはありません</div>`;
       return;
     }
 
-    if (tab === "pending") {
-      filtered
-        .filter((row) => !row._isStatic)
-        .forEach((row) => pendingRowsById.set(row.id, row));
-    }
+    filtered
+      .filter((row) => !row._isStatic)
+      .forEach((row) => editableRowsById.set(row.id, row));
 
     root.innerHTML = filtered
-      .map((row) =>
-        renderReviewCard(row, {
-          showActions: tab === "pending" && !row._isStatic,
-          showDelete: (tab === "approved" || tab === "all") && !row._isStatic && row.status === "approved",
-        })
-      )
+      .map((row) => {
+        const isPending = row.status === "pending";
+        const canEdit = !row._isStatic && !isPending;
+        return renderReviewCard(row, {
+          showActions: isPending && !row._isStatic,
+          showEditActions: canEdit,
+          showDelete: !row._isStatic && row.status === "approved",
+        });
+      })
       .join("");
 
     bindCardEvents();
-    if (tab === "pending") bindEditorHints();
+    bindEditorHints();
   } catch (err) {
     document.getElementById("admin-review-filters").innerHTML = "";
     root.innerHTML = `<div class="admin-empty">${App.escapeHtml(err.message)}</div>`;
@@ -417,17 +513,46 @@ function bindCardEvents() {
         const productId = document.getElementById(`product-${id}`)?.value || null;
         const adminNote = document.getElementById(`note-${id}`)?.value.trim() || "";
         const content = collectEditedContent(id);
-        const row = pendingRowsById.get(id);
+        const row = editableRowsById.get(id);
         const edited = row ? wasContentEdited(row, content) : false;
 
         await ReviewsApi.approveReview(id, {
           productId: productId || undefined,
+          productName: resolveProductName(productId) || undefined,
           adminNote,
           content,
           wasEdited: edited,
         });
         App.showToast(edited ? "内容を修正して公開しました" : "口コミを公開しました");
         await loadTab("pending");
+      } catch (err) {
+        App.showToast(err.message, "error");
+        btn.disabled = false;
+      }
+    });
+  });
+
+  document.querySelectorAll("[data-action='save-review']").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const id = btn.dataset.id;
+      btn.disabled = true;
+      try {
+        const productId = document.getElementById(`product-${id}`)?.value || null;
+        const adminNote = document.getElementById(`note-${id}`)?.value.trim() || "";
+        const content = collectEditedContent(id);
+        const row = editableRowsById.get(id);
+        const edited = row ? wasContentEdited(row, content) : true;
+        const productChanged = row && productId !== (row.product_id || "");
+
+        await ReviewsApi.updateReviewAdmin(id, {
+          productId,
+          productName: resolveProductName(productId) || row?.product_name || undefined,
+          adminNote,
+          content,
+          wasEdited: edited || productChanged,
+        });
+        App.showToast(edited || productChanged ? "口コミを更新しました（運営が修正）" : "口コミを更新しました");
+        await loadTab(currentTab);
       } catch (err) {
         App.showToast(err.message, "error");
         btn.disabled = false;
