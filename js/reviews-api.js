@@ -15,6 +15,14 @@
     return client;
   }
 
+  function readBodyBefore(row) {
+    return row?.body_before || row?.body_situation || "";
+  }
+
+  function readNumericResults(row) {
+    return row?.numeric_results || row?.body_numeric || "";
+  }
+
   function findProductIdByName(name) {
     if (typeof PRODUCTS === "undefined") return null;
     const trimmed = name.trim();
@@ -40,6 +48,7 @@
     return {
       id: `db-${row.id}`,
       productId: row.product_id || "",
+      productName: row.product_name || "",
       userName: row.reviewer_display_name || "匿名ユーザー",
       age: "30代",
       rating,
@@ -53,8 +62,8 @@
       pros: [row.body_pros],
       cons: [row.body_concerns],
       learned: row.body_results || row.body_learnings,
-      situation: row.body_situation,
-      numericResult: row.body_numeric,
+      situation: readBodyBefore(row),
+      numericResult: readNumericResults(row),
       recommendFor: row.body_recommend,
       bodyOther: row.body_other,
       contentSatisfaction: Number(row.content_satisfaction),
@@ -72,6 +81,7 @@
     if (typeof setApprovedDbReviews === "function") {
       setApprovedDbReviews(approvedCache);
     }
+    window.dispatchEvent(new CustomEvent("reviews:updated", { detail: { count: approvedCache.length } }));
   }
 
   async function loadApprovedReviews() {
@@ -99,13 +109,47 @@
     return approvedCache;
   }
 
-  async function syncUnlockState() {
+  async function canViewFullReview() {
     if (!window.Auth?.isLoggedIn?.()) return false;
+    if (window.Auth.refreshProfile) {
+      await window.Auth.refreshProfile();
+    }
+    if (window.Auth.isPaidMember?.()) {
+      localStorage.setItem("reviewsUnlocked", "true");
+      return true;
+    }
     const has = await userHasSubmissions();
     if (has) {
       localStorage.setItem("reviewsUnlocked", "true");
     }
     return has;
+  }
+
+  async function syncUnlockState() {
+    return canViewFullReview();
+  }
+
+  async function getReviewAccessState() {
+    const loggedIn = window.Auth?.isLoggedIn?.() ?? false;
+    const isPaidMember = window.Auth?.isPaidMember?.() ?? false;
+    let hasPostedReview = false;
+
+    if (loggedIn) {
+      hasPostedReview = await userHasSubmissions();
+    }
+
+    const canViewFull = loggedIn && (isPaidMember || hasPostedReview);
+
+    if (canViewFull) {
+      localStorage.setItem("reviewsUnlocked", "true");
+    }
+
+    return {
+      loggedIn,
+      isPaidMember,
+      hasPostedReview,
+      canViewFull,
+    };
   }
 
   async function init() {
@@ -164,18 +208,25 @@
     const bodyIdMap = {
       bodyPros: "body_pros",
       bodyConcerns: "body_concerns",
-      bodySituation: "body_situation",
+      bodyBefore: "body_before",
       bodyResults: "body_results",
       bodyRecommend: "body_recommend",
-      bodyNumeric: "body_numeric",
+      numericResults: "numeric_results",
       bodyOther: "body_other",
     };
     const bodyMinLengths = {
-      body_pros: 100,
-      body_concerns: 50,
-      body_situation: 50,
-      body_results: 100,
-      body_recommend: 50,
+      body_pros: 150,
+      body_concerns: 80,
+      body_before: 80,
+      body_results: 150,
+      body_recommend: 80,
+    };
+    const bodyMinLabels = {
+      body_pros: "良かった点",
+      body_concerns: "気になった点",
+      body_before: "受講前・利用前の状態",
+      body_results: "受講後・利用後の変化",
+      body_recommend: "おすすめしたい人",
     };
     const bodies = {};
     formData.bodies.forEach((b) => {
@@ -189,7 +240,7 @@
         throw new Error("口コミ本文の必須項目が不足しています");
       }
       if ([...text].length < minLen) {
-        throw new Error(`必須項目は${minLen}文字以上で入力してください`);
+        throw new Error(`${bodyMinLabels[key]}が${minLen}文字未満です`);
       }
     }
 
@@ -208,11 +259,13 @@
       result_realization: ratings.result_realization,
       body_pros: bodies.body_pros,
       body_concerns: bodies.body_concerns,
-      body_situation: bodies.body_situation,
+      body_before: bodies.body_before,
+      body_situation: bodies.body_before,
       body_results: bodies.body_results,
       body_learnings: bodies.body_results,
       body_recommend: bodies.body_recommend,
-      body_numeric: bodies.body_numeric?.trim() || null,
+      numeric_results: bodies.numeric_results?.trim() || null,
+      body_numeric: bodies.numeric_results?.trim() || null,
       body_other: bodies.body_other?.trim() || null,
       reviewer_display_name: reviewerName,
     };
@@ -306,9 +359,38 @@
     return data?.signedUrl ?? null;
   }
 
-  async function approveReview(id, { productId, adminNote } = {}) {
+  const ADMIN_BODY_MIN = {
+    body_pros: 150,
+    body_concerns: 80,
+    body_before: 80,
+    body_results: 150,
+    body_recommend: 80,
+  };
+
+  const ADMIN_BODY_LABELS = {
+    body_pros: "良かった点・満足した点",
+    body_concerns: "気になった点・改善してほしい点",
+    body_before: "受講前・利用前の状態",
+    body_results: "受講後・利用後の変化",
+    body_recommend: "どんな人におすすめしたいか",
+  };
+
+  function validateAdminReviewContent(content) {
+    for (const [key, minLen] of Object.entries(ADMIN_BODY_MIN)) {
+      const text = content?.[key]?.trim() || "";
+      if ([...text].length < minLen) {
+        throw new Error(`${ADMIN_BODY_LABELS[key]}は${minLen}文字以上にしてください`);
+      }
+    }
+  }
+
+  async function approveReview(id, { productId, adminNote, content, wasEdited } = {}) {
     ensureConfigured();
     if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    if (content) {
+      validateAdminReviewContent(content);
+    }
 
     const payload = {
       status: "approved",
@@ -317,8 +399,24 @@
       published_at: new Date().toISOString(),
       rejection_reason: null,
       admin_note: adminNote || null,
+      was_edited_by_admin: Boolean(wasEdited),
     };
     if (productId) payload.product_id = productId;
+
+    if (content) {
+      const beforeText = (content.body_before ?? content.body_situation ?? "").trim();
+      const numericText = (content.numeric_results ?? content.body_numeric ?? "").trim() || null;
+      payload.body_pros = content.body_pros.trim();
+      payload.body_concerns = content.body_concerns.trim();
+      payload.body_before = beforeText;
+      payload.body_situation = beforeText;
+      payload.body_results = content.body_results.trim();
+      payload.body_learnings = content.body_results.trim();
+      payload.body_recommend = content.body_recommend.trim();
+      payload.numeric_results = numericText;
+      payload.body_numeric = numericText;
+      payload.body_other = content.body_other?.trim() || null;
+    }
 
     const { data, error } = await getClient()
       .from("submitted_reviews")
@@ -367,6 +465,8 @@
     loadApprovedReviews,
     submitReview,
     userHasSubmissions,
+    canViewFullReview,
+    getReviewAccessState,
     getMyReviews,
     getPendingReviews,
     getReviewHistory,

@@ -5,6 +5,9 @@ const SEARCH_HINTS = [
   "SNSアカウント名で検索",
 ];
 
+const HOME_REVIEWS_LIMIT = 6;
+const HOME_REVIEWS_PER_PAGE = 3;
+
 function renderStarsInline(rating) {
   const full = Math.round(rating);
   let html = "";
@@ -14,20 +17,37 @@ function renderStarsInline(rating) {
   return html;
 }
 
-const HOME_REVIEWS_PER_PAGE = 3;
+document.addEventListener("DOMContentLoaded", async () => {
+  await App.whenReady();
 
-document.addEventListener("DOMContentLoaded", () => {
   initHeroSearch();
   renderTrending();
-  renderReviews();
   renderCategories();
+  renderReviews();
   renderReviewCountLabel();
+
+  window.addEventListener("reviews:updated", () => {
+    renderReviews();
+    renderReviewCountLabel();
+  });
+
+  document.addEventListener("visibilitychange", async () => {
+    if (document.visibilityState !== "visible") return;
+    if (!window.ReviewsApi?.loadApprovedReviews) return;
+    await window.ReviewsApi.loadApprovedReviews();
+  });
 });
 
 function renderReviewCountLabel() {
   const el = document.getElementById("home-review-count");
   if (!el) return;
-  el.textContent = "購入証明を提出した口コミには「購入証明済み」バッジが付きます（提出は任意）";
+
+  const total = typeof getAllReviewsMerged === "function" ? getAllReviewsMerged().length : REVIEWS.length;
+  const latestCount = Math.min(HOME_REVIEWS_LIMIT, total);
+  el.textContent =
+    total > 0
+      ? `承認済みの口コミから最新${latestCount}件を表示しています（全${total}件）`
+      : "購入証明を提出した口コミには「購入証明済み」バッジが付きます（提出は任意）";
 }
 
 function initHeroSearch() {
@@ -75,17 +95,34 @@ function renderCategories() {
   ).join("");
 }
 
+function resolveReviewLinks(r, productMap) {
+  const product = r.productId ? productMap[r.productId] : null;
+  const serviceName = product?.title || r.productName || "（サービス名非公開）";
+
+  let detailUrl = "reviews.html";
+  if (product) {
+    detailUrl = `review-detail.html?id=${product.id}`;
+  } else if (r.productId) {
+    detailUrl = `review-detail.html?id=${r.productId}`;
+  } else if (r.productName) {
+    detailUrl = `reviews.html?search=${encodeURIComponent(r.productName)}`;
+  }
+
+  return { product, serviceName, detailUrl };
+}
+
 function renderReviewCardHtml(r, productMap) {
-  const product = productMap[r.productId];
+  const { product, serviceName, detailUrl } = resolveReviewLinks(r, productMap);
   const rating = r.rating || 4;
-  const serviceName = product ? product.title : "（サービス名非公開）";
   const category = product ? getCategoryLabel(product.category) : "—";
   const instructor = product ? product.instructor : "";
-  const detailUrl = product ? `review-detail.html?id=${product.id}` : "reviews.html";
   const badges = renderReviewTrustBadges(r, { large: true });
   const noBadgeNote = hasAnyTrustBadge(r)
     ? ""
     : `<p class="review-no-badge">購入記録未提出の口コミ</p>`;
+  const dbBadge = r._fromDb
+    ? `<span class="review-feed-db-badge">新着</span>`
+    : "";
 
   return `
       <article class="review-feed-card review-feed-card--primary">
@@ -97,6 +134,7 @@ function renderReviewCardHtml(r, productMap) {
           <time class="review-feed-date" datetime="${App.escapeHtml(r.date)}">${formatDateJa(r.date)}</time>
         </header>
         ${badges}
+        ${dbBadge}
         ${noBadgeNote}
         <a href="${detailUrl}" class="review-feed-service-name review-feed-service-name--lg">${App.escapeHtml(serviceName)}</a>
         ${instructor ? `<p class="review-feed-instructor">講師・発信者：${App.escapeHtml(instructor)} · ${App.escapeHtml(category)}</p>` : `<p class="review-feed-instructor">${App.escapeHtml(category)}</p>`}
@@ -115,8 +153,8 @@ function renderReviews() {
   if (!track || typeof REVIEWS === "undefined") return;
 
   const productMap = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
-  const sorted = [...REVIEWS].sort((a, b) => new Date(b.date) - new Date(a.date));
-  const items = sorted.slice(0, 6);
+  const items =
+    typeof getLatestReviews === "function" ? getLatestReviews(HOME_REVIEWS_LIMIT) : [...REVIEWS];
   const pages = [];
 
   for (let i = 0; i < items.length; i += HOME_REVIEWS_PER_PAGE) {
@@ -124,7 +162,13 @@ function renderReviews() {
   }
 
   if (pages.length === 0) {
-    track.innerHTML = "";
+    track.innerHTML = `
+      <div class="reviews-carousel-slide review-feed review-feed--primary">
+        <p class="review-feed-empty">まだ公開中の口コミがありません。<a href="submit-review.html">最初の口コミを投稿</a>してください。</p>
+      </div>`;
+    if (carousel) {
+      carousel.classList.add("reviews-carousel--single");
+    }
     return;
   }
 
@@ -170,11 +214,13 @@ function initReviewsCarousel(carousel, track, pageCount) {
     }
   };
 
+  carousel.classList.remove("reviews-carousel--single", "reviews-carousel--end");
   if (pageCount <= 1) {
     nextBtn.disabled = true;
     prevBtn.disabled = true;
     carousel.classList.add("reviews-carousel--single");
   }
 
+  pageIndex = 0;
   update();
 }

@@ -475,12 +475,34 @@ function setApprovedDbReviews(reviews) {
   _approvedDbReviews = Array.isArray(reviews) ? reviews : [];
 }
 
-function getReviewsByProductId(productId) {
-  const staticReviews = REVIEWS.filter((r) => r.productId === productId);
-  const dbReviews = _approvedDbReviews.filter((r) => r.productId === productId);
-  return [...staticReviews, ...dbReviews].sort(
+function getAllReviewsMerged() {
+  const seen = new Set();
+  const merged = [];
+
+  for (const review of [...REVIEWS, ..._approvedDbReviews]) {
+    if (seen.has(review.id)) continue;
+    seen.add(review.id);
+    merged.push(review);
+  }
+
+  return merged.sort((a, b) => new Date(b.date) - new Date(a.date));
+}
+
+function getLatestReviews(limit = 6) {
+  const dbSorted = [..._approvedDbReviews].sort((a, b) => new Date(b.date) - new Date(a.date));
+  const staticSorted = REVIEWS.filter((r) => !dbSorted.some((d) => d.id === r.id)).sort(
     (a, b) => new Date(b.date) - new Date(a.date)
   );
+
+  if (dbSorted.length > 0) {
+    return [...dbSorted, ...staticSorted].slice(0, limit);
+  }
+
+  return staticSorted.slice(0, limit);
+}
+
+function getReviewsByProductId(productId) {
+  return getAllReviewsMerged().filter((r) => r.productId === productId);
 }
 
 /** 商品（商材）単位の口コミ集計 */

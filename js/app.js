@@ -104,6 +104,25 @@
     return localStorage.getItem("reviewsUnlocked") === "true";
   }
 
+  async function canViewFullReview() {
+    if (window.ReviewsApi?.canViewFullReview) {
+      return window.ReviewsApi.canViewFullReview();
+    }
+    return hasUnlockedReviews();
+  }
+
+  async function getReviewAccessState() {
+    if (window.ReviewsApi?.getReviewAccessState) {
+      return window.ReviewsApi.getReviewAccessState();
+    }
+    return {
+      loggedIn: isLoggedIn(),
+      isPaidMember: false,
+      hasPostedReview: hasUnlockedReviews(),
+      canViewFull: hasUnlockedReviews(),
+    };
+  }
+
   function getCurrentPage() {
     const path = window.location.pathname.split("/").pop() || "index.html";
     return path;
@@ -374,6 +393,8 @@
     getUserName,
     getUserEmail,
     hasUnlockedReviews,
+    canViewFullReview,
+    getReviewAccessState,
     showToast,
     renderHeader,
     renderFooter,

@@ -5,6 +5,7 @@ create table if not exists public.profiles (
   id uuid references auth.users on delete cascade primary key,
   display_name text not null,
   email text not null,
+  is_paid_member boolean not null default false,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

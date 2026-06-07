@@ -26,7 +26,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const summary = getProductReviewSummary(product);
   const reviews = summary.reviews;
-  const unlocked = App.hasUnlockedReviews();
+  const access = await App.getReviewAccessState();
+  const unlocked = access.canViewFull;
   const reviewCount = Math.max(reviews.length, product.reviewCount || 0);
   const avgRating = reviews.length ? summary.averageRating : product.averageRating;
   const radarScores = computeRadarScores(reviews, product);
@@ -147,12 +148,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           </div>
           <div class="pd2-side-card">
             <h2 class="pd2-side-title">評価のポイント</h2>
-            <ul class="pd2-eval-list">
-              ${RADAR_AXES.map((axis, i) => {
-                const val = Number(radarScores[i]) || 0;
-                return `<li><span class="pd2-eval-label">${axis.label}</span><span class="pd2-eval-bar"><span style="width:${(val / 5) * 100}%"></span></span><span class="pd2-eval-val">${val.toFixed(1)}</span></li>`;
-              }).join("")}
+            <ul class="pd2-eval-list${unlocked ? "" : " pd2-eval-list--locked"}">
+              ${renderEvalList(radarScores, unlocked)}
             </ul>
+            ${!unlocked ? renderEvalUnlockNote() : ""}
           </div>
           ${renderBasicInfoCard(product)}
           <button type="button" class="pd2-report">不適切な口コミを通報する</button>
@@ -226,16 +225,88 @@ function getRelatedProducts(product) {
     .slice(0, 8);
 }
 
+const PREVIEW_CHAR_LIMIT = 15;
+
 function renderUnlockBanner() {
   return `
-    <div class="pd2-unlock">
-      <p class="pd2-unlock-title">🔒 口コミの詳細をすべて読む</p>
-      <p class="pd2-unlock-desc">良かった点・気になった点・学べたことは、口コミ投稿後または有料プランで全文閲覧できます</p>
+    <div class="pd2-unlock pd2-unlock--premium">
+      <div class="pd2-unlock-icon" aria-hidden="true">🔒</div>
+      <p class="pd2-unlock-title">続きを読むには</p>
+      <p class="pd2-unlock-desc">実際の購入者による詳細な口コミは、投稿者またはプレミアム会員のみ全文閲覧できます。</p>
+      <ul class="pd2-unlock-list">
+        <li>口コミを投稿する</li>
+        <li>または</li>
+        <li>プレミアム会員になる</li>
+      </ul>
       <div class="pd2-unlock-actions">
-        <a href="submit-review.html" class="btn btn-trust">無料で口コミを投稿</a>
-        <a href="pricing.html" class="btn btn-outline">月額プランを見る</a>
+        <a href="submit-review.html" class="btn btn-trust">口コミを投稿する</a>
+        <a href="pricing.html" class="btn btn-outline-trust">プレミアム会員になる</a>
       </div>
     </div>`;
+}
+
+function renderEvalUnlockNote() {
+  return `
+    <p class="pd2-eval-lock-note">
+      <span aria-hidden="true">🔒</span>
+      詳細な評価スコアは口コミ投稿後またはプレミアム会員で表示されます
+    </p>`;
+}
+
+function renderEvalList(radarScores, unlocked) {
+  return RADAR_AXES.map((axis, i) => {
+    const val = Number(radarScores[i]) || 0;
+    if (unlocked) {
+      return `<li><span class="pd2-eval-label">${axis.label}</span><span class="pd2-eval-bar"><span style="width:${(val / 5) * 100}%"></span></span><span class="pd2-eval-val">${val.toFixed(1)}</span></li>`;
+    }
+    const starPreview = renderStarsHtml(val);
+    return `<li class="pd2-eval-item--locked">
+      <span class="pd2-eval-label">${axis.label}</span>
+      <span class="pd2-eval-bar pd2-eval-bar--locked" aria-hidden="true"><span style="width:${(val / 5) * 100}%"></span></span>
+      <span class="pd2-eval-val pd2-eval-val--locked" aria-label="スコアは非公開">
+        <span class="pd2-eval-stars-mask">${starPreview}</span>
+      </span>
+    </li>`;
+  }).join("");
+}
+
+function truncatePreview(text, limit = PREVIEW_CHAR_LIMIT) {
+  const chars = [...String(text || "")];
+  if (!chars.length) return "（記載なし）";
+  if (chars.length <= limit) return chars.join("");
+  return chars.slice(0, limit).join("");
+}
+
+function hasMoreThanPreview(text, limit = PREVIEW_CHAR_LIMIT) {
+  return [...String(text || "")].length > limit;
+}
+
+function renderPaywallCta(showActions = true) {
+  if (!showActions) return "";
+  return `
+    <div class="pd2-paywall-cta">
+      <span class="pd2-paywall-lock" aria-hidden="true">🔒</span>
+      <p class="pd2-paywall-cta-title">続きを読むには</p>
+      <ul class="pd2-paywall-cta-list">
+        <li>口コミを投稿する</li>
+        <li>または</li>
+        <li>プレミアム会員になる</li>
+      </ul>
+      <div class="pd2-paywall-cta-actions">
+        <a href="submit-review.html" class="btn btn-trust btn-sm">口コミを投稿する</a>
+        <a href="pricing.html" class="btn btn-outline-trust btn-sm">プレミアム会員になる</a>
+      </div>
+    </div>`;
+}
+
+function renderLockedFiller() {
+  return `
+    <div class="pd2-paywall-filler" aria-hidden="true">
+      <span class="pd2-paywall-line"></span>
+      <span class="pd2-paywall-line"></span>
+      <span class="pd2-paywall-line pd2-paywall-line--short"></span>
+    </div>
+    <div class="pd2-paywall-fade"></div>`;
 }
 
 function renderRelatedCard(p) {
@@ -284,11 +355,18 @@ function getUserProfile(r) {
   return { age: r.age, job: jobs[n % jobs.length], gender: genders[n % 2] };
 }
 
-function getLearnedText(r) {
+function getBeforeText(r) {
+  if (r.situation) return r.situation;
+  return "";
+}
+
+function getAfterChangeText(r) {
   if (r.learned) return r.learned;
   if (r.results) return r.results;
   if (r.content && r.content.length > 30) return r.content.slice(0, 160) + (r.content.length > 160 ? "…" : "");
-  return r.pros?.[0] ? `${r.pros[0]}を実践し、新しいスキルが身についた` : "受講を通じて実践的な知識を得られた";
+  return r.pros?.[0]
+    ? `${r.pros[0]}を実践し、受講後に新しいスキルが身についた`
+    : "受講・利用を通じて実践的な変化を感じられた";
 }
 
 function getRecommendForText(r) {
@@ -298,23 +376,43 @@ function getRecommendForText(r) {
   return "購入前に十分比較検討したい人";
 }
 
-function renderTagBlock(type, label, text, unlocked) {
-  const inner = App.escapeHtml(text || "（記載なし）");
-  const lockable = type !== "recommend";
-  if (lockable && !unlocked) {
+function getOtherText(r) {
+  return r.bodyOther || "";
+}
+
+function renderTagBlock(type, label, text, unlocked, { showCta = false } = {}) {
+  const raw = text || "（記載なし）";
+  const inner = App.escapeHtml(raw);
+
+  if (unlocked) {
     return `
       <div class="pd2-rc-box pd2-rc-box--${type}">
         <h4 class="pd2-rc-box-title">${label}</h4>
-        <div class="pd2-mosaic">
-          <p class="pd2-rc-box-text pd2-blur">${inner}</p>
-          <div class="pd2-mosaic-over"><span>🔒</span><p>口コミ投稿で全文を読む</p></div>
-        </div>
+        <p class="pd2-rc-box-text">${inner}</p>
       </div>`;
   }
+
+  const preview = App.escapeHtml(truncatePreview(raw));
+  const locked = hasMoreThanPreview(raw);
+
+  if (!locked) {
+    return `
+      <div class="pd2-rc-box pd2-rc-box--${type}">
+        <h4 class="pd2-rc-box-title">${label}</h4>
+        <p class="pd2-rc-box-text">${preview}</p>
+      </div>`;
+  }
+
   return `
-    <div class="pd2-rc-box pd2-rc-box--${type}">
+    <div class="pd2-rc-box pd2-rc-box--${type} pd2-rc-box--locked">
       <h4 class="pd2-rc-box-title">${label}</h4>
-      <p class="pd2-rc-box-text">${inner}</p>
+      <div class="pd2-paywall">
+        <p class="pd2-paywall-preview">${preview}</p>
+        <div class="pd2-paywall-locked">
+          ${renderLockedFiller()}
+          ${renderPaywallCta(showCta)}
+        </div>
+      </div>
     </div>`;
 }
 
@@ -328,9 +426,28 @@ function renderReviewCard(r, unlocked) {
   const proText = (r.pros || []).join("。") || "—";
   const conText = (r.cons || []).join("。") || "—";
   const helpfulBase = 3 + (r.id.length % 12);
+  const bodyBlocks = [
+    { type: "pro", label: "良かった点・満足した点", text: proText },
+    { type: "con", label: "気になった点", text: conText },
+    ...(getBeforeText(r)
+      ? [{ type: "before", label: "受講前・利用前の状態", text: getBeforeText(r) }]
+      : []),
+    { type: "learn", label: "受講後・利用後の変化", text: getAfterChangeText(r) },
+    { type: "recommend", label: "どんな人におすすめしたいか", text: getRecommendForText(r) },
+    ...(getOtherText(r) ? [{ type: "other", label: "その他", text: getOtherText(r) }] : []),
+  ];
+  let ctaShown = false;
+
+  const boxesHtml = bodyBlocks
+    .map((block) => {
+      const showCta = !unlocked && !ctaShown && hasMoreThanPreview(block.text);
+      if (showCta) ctaShown = true;
+      return renderTagBlock(block.type, block.label, block.text, unlocked, { showCta });
+    })
+    .join("");
 
   return `
-    <article class="pd2-rc" data-rating="${r.rating}" data-date="${r.date}" data-helpful="${helpfulBase}" id="review-${App.escapeHtml(r.id)}">
+    <article class="pd2-rc${unlocked ? "" : " pd2-rc--locked"}" data-rating="${r.rating}" data-date="${r.date}" data-helpful="${helpfulBase}" id="review-${App.escapeHtml(r.id)}">
       <aside class="pd2-rc-side">
         <span class="pd2-rc-avatar ${getAvatarClass(r)}" aria-hidden="true">👤</span>
         <p class="pd2-rc-demo">${App.escapeHtml(profile.age)}・${App.escapeHtml(profile.gender)}</p>
@@ -340,14 +457,15 @@ function renderReviewCard(r, unlocked) {
       <div class="pd2-rc-main">
         <div class="pd2-rc-rating-row">
           <span class="pd2-stars" aria-hidden="true">${renderStarsHtml(r.rating)}</span>
-          <strong>${r.rating.toFixed(1)}</strong>
+          ${
+            unlocked
+              ? `<strong>${r.rating.toFixed(1)}</strong>`
+              : `<span class="pd2-rating-mask" aria-label="詳細スコアは非公開">—</span>`
+          }
         </div>
         <h3 class="pd2-rc-title">${App.escapeHtml(r.title)}</h3>
         <div class="pd2-rc-boxes">
-          ${renderTagBlock("pro", "良かった点", proText, unlocked)}
-          ${renderTagBlock("con", "気になった点", conText, unlocked)}
-          ${renderTagBlock("learn", "学んだこと", getLearnedText(r), unlocked)}
-          ${renderTagBlock("recommend", "おすすめしたい人", getRecommendForText(r), unlocked)}
+          ${boxesHtml}
         </div>
         <div class="pd2-rc-foot">
           <button type="button" class="pd2-helpful" data-review-id="${App.escapeHtml(r.id)}" data-base="${helpfulBase}">

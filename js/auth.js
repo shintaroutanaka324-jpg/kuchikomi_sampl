@@ -58,7 +58,7 @@
     }
     const { data, error } = await client
       .from("profiles")
-      .select("display_name, email, is_admin")
+      .select("display_name, email, is_admin, is_paid_member")
       .eq("id", userId)
       .maybeSingle();
 
@@ -338,6 +338,16 @@
     return profile?.is_admin === true;
   }
 
+  function isPaidMember() {
+    return profile?.is_paid_member === true;
+  }
+
+  async function refreshProfile() {
+    if (session?.user) {
+      await fetchProfile(session.user.id);
+    }
+  }
+
   function getClient() {
     return client;
   }
@@ -352,6 +362,8 @@
     updatePassword,
     isLoggedIn,
     isAdmin,
+    isPaidMember,
+    refreshProfile,
     getClient,
     getUser,
     getUserName,

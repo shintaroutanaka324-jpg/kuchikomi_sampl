@@ -18,65 +18,81 @@ const BODY_ITEMS = [
   {
     id: "bodyPros",
     label: "良かった点・満足した点",
-    minChars: 100,
+    shortLabel: "良かった点",
+    minChars: 150,
     required: true,
-    placeholder: "サービスで良かった点や満足した点を、具体的なエピソードを交えて書いてください",
-    hint: "最低100文字以上で具体的に書いてください",
+    description: "受講・利用して良かった点や満足した点を、具体的なエピソードを交えて書いてください。",
+    placeholder:
+      "例）カリキュラムが段階的で初心者でも迷わず進められた。特に〇〇の解説が分かりやすく、実際に試したところすぐに成果が出た、など",
     icon: "smile",
   },
   {
     id: "bodyConcerns",
-    label: "気になった点",
-    minChars: 50,
+    label: "気になった点・改善してほしい点",
+    shortLabel: "気になった点",
+    minChars: 80,
     required: true,
-    placeholder: "気になった点や改善してほしい点を、具体的に書いてください",
-    hint: "最低50文字以上で具体的に書いてください",
+    description: "受講・利用して気になった点や、改善してほしいと感じた点を書いてください。",
+    placeholder:
+      "例）質問への返信に1週間ほどかかる日があった。動画の音量が小さい箇所があり、聞き取りづらかった、など",
     icon: "alert",
   },
   {
-    id: "bodySituation",
-    label: "購入前の状況・悩み",
-    minChars: 50,
+    id: "bodyBefore",
+    label: "受講前・利用前の状態",
+    shortLabel: "受講前・利用前の状態",
+    minChars: 80,
     required: true,
-    placeholder: "購入前に抱えていた悩みや課題、期待していたことを書いてください",
-    hint: "最低50文字以上で具体的に書いてください",
+    description: "受講・利用する前に、どのような悩み・課題・不安があったかを書いてください。",
+    placeholder: "例）受講前は、何から学べばよいか分からず、独学で何度も挫折していました。",
     icon: "situation",
   },
   {
     id: "bodyResults",
-    label: "得られた成果・変化",
-    minChars: 100,
+    label: "受講後・利用後の変化",
+    shortLabel: "受講後・利用後の変化",
+    minChars: 150,
     required: true,
-    placeholder: "利用後に得られた成果や変化を、できるだけ具体的に書いてください",
-    hint: "最低100文字以上で具体的に書いてください",
+    description: "受講・利用した後に、どのような成果・変化・気づきがあったかを書いてください。",
+    placeholder:
+      "例）受講後は、学習手順が明確になり、自分で簡単な制作物を作れるようになりました。",
     icon: "results",
   },
   {
     id: "bodyRecommend",
     label: "どんな人におすすめしたいか",
-    minChars: 50,
+    shortLabel: "おすすめしたい人",
+    minChars: 80,
     required: true,
-    placeholder: "どんな方におすすめできるか、理由と合わせて具体的に書いてください",
-    hint: "最低50文字以上で具体的に書いてください",
+    description: "このサービスをどのような人におすすめできるか、理由とあわせて書いてください。",
+    placeholder:
+      "例）本業が忙しくても隙間時間で学びたい方。〇〇で悩んでいるが、まず一歩踏み出したい方におすすめ、など",
     icon: "users",
   },
   {
-    id: "bodyNumeric",
+    id: "numericResults",
     label: "数値で表せる成果",
+    shortLabel: "数値で表せる成果",
     minChars: 0,
     required: false,
-    placeholder: "例：作業時間が月15時間から3時間に減った、年収が400万円から500万円になった、など",
-    hint: "売上、年収、学習時間、作業時間、成約数など、数値で表せる成果があれば入力してください（任意）",
+    description: "売上、年収、学習時間、作業時間、案件獲得数など、数値で表せる成果があれば入力してください。",
+    examples: [
+      "残業時間が月15時間から3時間になった",
+      "学習時間を週10時間確保できるようになった",
+      "売上が月30万円から50万円になった",
+    ],
+    placeholder: "数値で表せる変化があれば記載してください",
     icon: "numeric",
     rows: 3,
   },
   {
     id: "bodyOther",
     label: "その他",
+    shortLabel: "その他",
     minChars: 0,
     required: false,
-    placeholder: "上記以外で伝えたいことがあれば書いてください",
-    hint: "任意項目です",
+    description: "上記以外で伝えたいことがあれば書いてください。",
+    placeholder: "例）サポートの対応が丁寧だった、受講生コミュニティの雰囲気が良かった、など",
     icon: "note",
     rows: 4,
   },
@@ -288,6 +304,17 @@ function renderBodyRows() {
   return requiredHtml + optionalHtml;
 }
 
+function renderBodyExamples(item) {
+  if (!item.examples?.length) return "";
+  return `
+    <div class="sr-body-examples">
+      <p class="sr-body-examples-label">入力例</p>
+      <ul class="sr-body-examples-list">
+        ${item.examples.map((ex) => `<li>${App.escapeHtml(ex)}</li>`).join("")}
+      </ul>
+    </div>`;
+}
+
 function renderBodyItem(item, showBorder) {
   const min = getMinCharsForItem(item);
   return `
@@ -300,12 +327,13 @@ function renderBodyItem(item, showBorder) {
         </label>
       </div>
       <div class="sr-body-item-content">
+        <p class="form-hint sr-body-description">${App.escapeHtml(item.description)}</p>
+        ${renderBodyExamples(item)}
         <textarea class="form-textarea sr-textarea" id="${item.id}" rows="${item.rows || 5}"
           ${item.required ? "required" : ""}
           data-min-chars="${min}"
           data-required="${item.required ? "true" : "false"}"
           placeholder="${App.escapeHtml(item.placeholder)}"></textarea>
-        <p class="form-hint">${App.escapeHtml(item.hint)}</p>
         ${renderCharCount(item)}
       </div>
     </div>`;
@@ -330,7 +358,7 @@ function renderSidebar() {
           <li>実際に購入・受講した商品・サービスのみ投稿できます</li>
           <li>口コミを1件投稿すると、<strong>1か月間</strong>すべての口コミを閲覧できます</li>
           <li>購入証明の提出は任意です（提出で「購入証明済み」バッジ）</li>
-          <li>口コミ本文は項目ごとに<strong>最低文字数</strong>が異なります（50〜100文字）</li>
+          <li>口コミ本文は「受講前の状態 → 受講後の変化 → おすすめできる人」が伝わるよう、項目ごとに<strong>最低80〜150文字</strong>で記載してください</li>
         </ul>
         <a href="submit-guidelines.html" class="sr-side-guide-link">口コミ投稿ガイドラインを見る →</a>
       </div>
@@ -579,6 +607,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               </div>
               <div class="sr-subsection sr-subsection--body">
                 <h3 class="sr-subsection-title">口コミ本文</h3>
+                <p class="sr-body-intro">購入検討者が「本当に買うべきか」を判断できるよう、<strong>受講前の状態 → 受講後の変化 → おすすめできる人</strong>が伝わる口コミをお願いします。</p>
                 <div class="sr-body-list">${renderBodyRows()}</div>
               </div>
             </div>
@@ -587,6 +616,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         ${renderSidebar()}
       </div>
 
+      <div id="sr-validation-errors" class="sr-validation-errors hidden" role="alert" aria-live="polite"></div>
       <div class="sr-actions">
         <button type="submit" class="btn btn-trust btn-lg sr-submit-btn" id="submit-btn" disabled>
           入力内容を確認する
@@ -663,7 +693,7 @@ function updateTextareaState(textarea) {
       countEl.textContent =
         remaining > 0
           ? `${len} / ${minChars}文字（あと${remaining}文字）`
-          : `${len} / ${minChars}文字`;
+          : `${len} / ${minChars}文字（達成済み）`;
       countEl.classList.toggle("is-valid", len >= minChars && !lowQuality);
       countEl.classList.toggle("is-invalid", len < minChars || lowQuality);
     }
@@ -695,57 +725,69 @@ function getQualityInvalidFields() {
   });
 }
 
-function validateForm(showToast = false) {
-  const submitBtn = document.getElementById("submit-btn");
-  if (!submitBtn) return false;
-
+function collectValidationErrors() {
+  const errors = [];
   const productName = document.getElementById("productName")?.value.trim();
   const purchasePrice = document.getElementById("purchasePrice")?.value;
   const purchaseYear = document.getElementById("purchaseYear")?.value;
   const purchaseMonth = document.getElementById("purchaseMonth")?.value;
-  const missingRatings = RATING_ITEMS.filter(
-    (item) => !Number(document.getElementById(item.key)?.value || 0)
-  );
-  const shortComments = REQUIRED_BODY_ITEMS.filter((item) => {
-    const minChars = getMinCharsForItem(item);
-    return countChars(document.getElementById(item.id)?.value || "") < minChars;
-  });
-  const badQuality = getQualityInvalidFields();
 
-  const isValid =
-    productName &&
-    purchasePrice !== "" &&
-    Number(purchasePrice) >= 0 &&
-    purchaseYear &&
-    purchaseMonth &&
-    missingRatings.length === 0 &&
-    shortComments.length === 0 &&
-    badQuality.length === 0;
+  if (!productName) errors.push("商品・サービス名を入力してください");
+  if (purchasePrice === "" || Number(purchasePrice) < 0) errors.push("購入価格を入力してください");
+  if (!purchaseYear || !purchaseMonth) errors.push("購入時期を選択してください");
+
+  RATING_ITEMS.forEach((item) => {
+    if (!Number(document.getElementById(item.key)?.value || 0)) {
+      errors.push(`${item.label}の評価を入力してください`);
+    }
+  });
+
+  REQUIRED_BODY_ITEMS.forEach((item) => {
+    const minChars = getMinCharsForItem(item);
+    const text = document.getElementById(item.id)?.value || "";
+    const len = countChars(text);
+    const label = item.shortLabel || item.label;
+    if (len < minChars) {
+      errors.push(`${label}が${minChars}文字未満です`);
+    } else if (isLowQualityText(text, minChars)) {
+      errors.push(`${label}の内容が適切ではありません。具体的な体験を記載してください`);
+    }
+  });
+
+  return errors;
+}
+
+function renderValidationErrors(errors) {
+  const box = document.getElementById("sr-validation-errors");
+  if (!box) return;
+  if (!errors.length) {
+    box.classList.add("hidden");
+    box.innerHTML = "";
+    return;
+  }
+  box.classList.remove("hidden");
+  box.innerHTML = `
+    <p class="sr-validation-errors-title">入力内容を確認してください</p>
+    <ul class="sr-validation-errors-list">
+      ${errors.map((msg) => `<li>${App.escapeHtml(msg)}</li>`).join("")}
+    </ul>`;
+  box.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function validateForm(showErrors = false) {
+  const submitBtn = document.getElementById("submit-btn");
+  if (!submitBtn) return false;
+
+  const errors = collectValidationErrors();
+  const isValid = errors.length === 0;
 
   submitBtn.disabled = !isValid;
 
-  if (showToast) {
-    if (!productName || purchasePrice === "" || !purchaseYear || !purchaseMonth) {
-      App.showToast("購入情報の必須項目を入力してください", "error");
-      return false;
-    }
-    if (missingRatings.length) {
-      App.showToast("5つの評価をすべて入力してください", "error");
-      return false;
-    }
-    if (shortComments.length) {
-      const first = shortComments[0];
-      App.showToast(
-        `${first.label}は${getMinCharsForItem(first)}文字以上入力してください`,
-        "error"
-      );
-      return false;
-    }
-    if (badQuality.length) {
-      const names = badQuality.map((item) => item.label).join("、");
-      App.showToast(`${names}の内容が適切ではありません。具体的な体験を記載してください`, "error");
-      return false;
-    }
+  if (showErrors) {
+    renderValidationErrors(errors);
+    if (errors.length) return false;
+  } else {
+    renderValidationErrors([]);
   }
 
   return isValid;
@@ -763,6 +805,7 @@ function initFormValidation() {
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     if (!validateForm(true)) return;
+    renderValidationErrors([]);
     showConfirmScreen();
   });
 

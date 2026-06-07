@@ -1747,6 +1747,27 @@ main {
   background: #fff;
 }
 
+.review-feed-db-badge {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.15rem 0.5rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: var(--trust-700);
+  background: var(--trust-50);
+  border: 1px solid var(--trust-100);
+  border-radius: 999px;
+}
+
+.review-feed-empty {
+  margin: 0;
+  padding: 2rem 1rem;
+  text-align: center;
+  color: var(--gray-500);
+  font-size: 0.9375rem;
+  line-height: 1.7;
+}
+
 .review-feed-rating-large {
   display: flex;
   align-items: center;
@@ -7159,7 +7180,65 @@ main {
 }
 
 .sr-char-count.is-valid {
-  color: var(--trust-700);
+  color: #15803d;
+  font-weight: 600;
+}
+
+.sr-body-intro {
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  line-height: 1.7;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem 1rem;
+  background: var(--trust-50);
+  border-radius: 8px;
+  border: 1px solid var(--trust-100);
+}
+
+.sr-body-description {
+  margin-bottom: 0.5rem;
+}
+
+.sr-body-examples {
+  margin-bottom: 0.65rem;
+}
+
+.sr-body-examples-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-bottom: 0.25rem;
+}
+
+.sr-body-examples-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  line-height: 1.6;
+}
+
+.sr-validation-errors {
+  margin-top: 1.5rem;
+  padding: 1rem 1.25rem;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: var(--radius-lg);
+}
+
+.sr-validation-errors-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #b91c1c;
+  margin-bottom: 0.5rem;
+}
+
+.sr-validation-errors-list {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.875rem;
+  color: #991b1b;
+  line-height: 1.7;
 }
 
 .sr-actions {
