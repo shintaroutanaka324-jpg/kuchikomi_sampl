@@ -285,10 +285,10 @@
       }
     }
 
-    const quality = window.ReviewQuality?.evaluateReviewBodies?.(bodies) || {
-      pass: true,
-      reasons: [],
-    };
+    if (!window.ReviewQuality?.evaluateReviewBodies) {
+      throw new Error("品質チェックの読み込みに失敗しました。ページを再読み込みしてください。");
+    }
+    const quality = window.ReviewQuality.evaluateReviewBodies(bodies);
     const readUnlockStatus = quality.pass ? "auto_approved" : "pending";
 
     const insertPayload = {
@@ -336,7 +336,6 @@
         .insert(fallbackPayload)
         .select("*")
         .single());
-      quality.pass = true;
     }
 
     if (insertError) throw new Error(`口コミの保存に失敗しました: ${insertError.message}`);
@@ -377,6 +376,35 @@
         read_unlock_status: "admin_approved",
         updated_at: new Date().toISOString(),
       })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(
+        isMissingReadUnlockColumnError(error)
+          ? "閲覧解除機能に必要なDB列がありません。Supabase SQL Editor で supabase/schema-reviews-read-unlock.sql を実行してください。"
+          : error.message
+      );
+    }
+    return data;
+  }
+
+  async function resetReadUnlockPending(id, qualityReasons) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const payload = {
+      read_unlock_status: "pending",
+      updated_at: new Date().toISOString(),
+    };
+    if (qualityReasons) {
+      payload.quality_flags = qualityReasons;
+    }
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .update(payload)
       .eq("id", id)
       .select("*")
       .single();
@@ -808,6 +836,7 @@
     userHasSubmissions,
     userHasReadUnlock,
     approveReadUnlock,
+    resetReadUnlockPending,
     canViewFullReview,
     getReviewAccessState,
     getMyReviews,

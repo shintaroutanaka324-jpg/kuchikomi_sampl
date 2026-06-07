@@ -404,6 +404,11 @@
   align-items: start;
 }
 
+.adm-services-main {
+  width: 100%;
+  min-width: 0;
+}
+
 .adm-panel {
   background: #fff;
   border: 1px solid #eef0f3;
@@ -867,6 +872,18 @@
   background: #fffbeb;
   border: 1px solid #fde68a;
   border-radius: 0.5rem;
+}
+
+.adm-quality-flags--alert {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.adm-quality-mismatch {
+  margin: 0 0 0.5rem;
+  font-size: 0.8125rem;
+  color: #b91c1c;
+  line-height: 1.6;
 }
 
 .adm-quality-flags-list {

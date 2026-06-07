@@ -249,62 +249,6 @@
       </div>`;
   }
 
-  function renderAside(products) {
-    const S = window.AdminDashboardStats;
-    const latest = S.getLatestReviews(5);
-    const catStats = S.buildCategoryStats(products);
-
-    const feed = latest.length
-      ? latest
-          .map(
-            (r) => `
-        <div class="adm-review-feed-item">
-          <div class="adm-review-feed-title">${App.escapeHtml(r.name)}</div>
-          <div class="adm-review-feed-meta">${S.renderStars(r.rating)} · ${App.escapeHtml(S.formatRelativeTime(r.time))}</div>
-        </div>`
-          )
-          .join("")
-      : '<p class="adm-empty-state">口コミがありません</p>';
-
-    const legend = catStats.items
-      .map(
-        (item) => `
-      <div class="adm-legend-item">
-        <span class="adm-legend-dot" style="background:${item.color}"></span>
-        <span>${App.escapeHtml(item.label)}</span>
-        <span style="margin-left:auto;color:#9ca3af">${item.services} / ${item.reviews}</span>
-      </div>`
-      )
-      .join("");
-
-    return `
-      <div class="adm-aside">
-        <div class="adm-panel">
-          <div class="adm-panel-head"><h3 class="adm-panel-title">最新口コミ</h3></div>
-          <div class="adm-panel-body">${feed}</div>
-        </div>
-        <div class="adm-panel">
-          <div class="adm-panel-head"><h3 class="adm-panel-title">カテゴリ分析</h3></div>
-          <div class="adm-panel-body">
-            <div class="adm-donut-wrap">
-              <div class="adm-donut" style="background:conic-gradient(${catStats.gradient})" title="サービス数"></div>
-              <div class="adm-donut-legend">${legend || '<span style="font-size:0.75rem;color:#9ca3af">データなし</span>'}</div>
-            </div>
-            <p style="font-size:0.6875rem;color:#9ca3af;margin:0.65rem 0 0">サービス数 / 口コミ数</p>
-          </div>
-        </div>
-        <div class="adm-panel">
-          <div class="adm-panel-head"><h3 class="adm-panel-title">クイックアクション</h3></div>
-          <div class="adm-panel-body adm-quick-actions">
-            <button type="button" class="adm-quick-btn is-primary" id="ap-show-create-form">＋ 新規サービス登録</button>
-            <button type="button" class="adm-quick-btn" disabled title="準備中">カテゴリ追加</button>
-            <button type="button" class="adm-quick-btn" disabled title="準備中">タグ追加</button>
-            <a href="admin.html" class="adm-quick-btn">口コミ管理へ</a>
-          </div>
-        </div>
-      </div>`;
-  }
-
   function renderFormFields(form) {
     return `
       <div class="admin-product-grid">
@@ -612,10 +556,7 @@
       root.innerHTML = `
         ${warning}
         ${renderKpiRow(kpis)}
-        <div class="adm-grid">
-          <div>${renderServiceTable(products)}</div>
-          ${renderAside(products)}
-        </div>`;
+        <div class="adm-services-main">${renderServiceTable(products)}</div>`;
 
       bindListEvents(root, products);
       document.getElementById("ap-show-create-form")?.addEventListener("click", () => {

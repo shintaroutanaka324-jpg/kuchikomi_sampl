@@ -404,12 +404,32 @@
     return `<span class="adm-status-pill adm-status-pill--${cls}">${App.escapeHtml(label)}</span>`;
   }
 
-  function renderQualityFlags(row) {
-    const flags = Array.isArray(row.quality_flags) ? row.quality_flags : [];
+  function getLiveQualityAssessment(row) {
+    if (row._isStatic || !window.ReviewQuality?.evaluateReviewRow) return null;
+    return window.ReviewQuality.evaluateReviewRow(row);
+  }
+
+  function renderQualityFlags(row, liveQuality) {
+    const stored = Array.isArray(row.quality_flags) ? row.quality_flags : [];
+    const live = liveQuality && !liveQuality.pass ? liveQuality.reasons || [] : [];
+    const flags = live.length ? live : stored;
     if (!flags.length) return "";
+
+    const mismatch =
+      liveQuality &&
+      !liveQuality.pass &&
+      row.read_unlock_status &&
+      row.read_unlock_status !== "pending" &&
+      row.read_unlock_status !== "denied";
+
     return `
-      <div class="adm-quality-flags">
-        <h4 class="adm-detail-section-title">自動品質チェック</h4>
+      <div class="adm-quality-flags${mismatch ? " adm-quality-flags--alert" : ""}">
+        <h4 class="adm-detail-section-title">自動品質チェック${live.length ? "（再判定）" : ""}</h4>
+        ${
+          mismatch
+            ? `<p class="adm-quality-mismatch">品質チェックに引っかかっていますが、閲覧解除状態が「${App.escapeHtml(window.ReviewQuality.readUnlockLabel(row.read_unlock_status))}」になっています。</p>`
+            : ""
+        }
         <ul class="adm-quality-flags-list">
           ${flags
             .map((f) => `<li>${App.escapeHtml(f.message || f.code || "要確認")}</li>`)
@@ -422,11 +442,21 @@
     const isPending = row.status === "pending";
     const isApproved = row.status === "approved";
     const canEdit = !row._isStatic && !isPending;
+    const liveQuality = getLiveQualityAssessment(row);
     const needsReadUnlock = !row._isStatic && row.read_unlock_status === "pending";
+    const shouldHoldReadUnlock =
+      !row._isStatic &&
+      liveQuality &&
+      !liveQuality.pass &&
+      row.read_unlock_status &&
+      row.read_unlock_status !== "pending" &&
+      row.read_unlock_status !== "denied";
     return {
       showActions: isPending && !row._isStatic,
       showEditActions: canEdit,
       showReadUnlockApprove: needsReadUnlock,
+      showReadUnlockHold: shouldHoldReadUnlock,
+      liveQuality,
       showHide: !row._isStatic && isApproved && isReviewPublished(row),
       showUnhide: !row._isStatic && isReviewHidden(row),
       showDelete: !row._isStatic && isApproved,
@@ -461,7 +491,7 @@
       }).join("")}`;
   }
 
-  function renderReviewDetail(row, flags) {
+  function renderReviewDetail(row, flags, liveQuality) {
     const isStatic = row._isStatic === true;
     const categoryLabel =
       typeof getCategoryLabel === "function"
@@ -493,7 +523,7 @@
             <h4 class="adm-detail-section-title">評価</h4>
             <div class="admin-ratings">${renderRatings(row)}</div>
 
-            ${renderQualityFlags(row)}
+            ${renderQualityFlags(row, liveQuality)}
 
             <h4 class="adm-detail-section-title">口コミ本文</h4>
             ${showEditors ? renderBodyEditors(row, { postPublish: flags.showEditActions }) : renderBodyReadOnly(row)}
@@ -570,6 +600,18 @@
                 <p class="adm-read-unlock-note">この投稿者はまだ他の口コミ全文を閲覧できません。内容を確認し、問題なければ閲覧解除を承認してください（サイト公開とは別の操作です）。</p>
                 <div class="admin-actions">
                   <button type="button" class="adm-btn-primary" data-action="approve-read-unlock" data-id="${row.id}">閲覧解除を承認</button>
+                </div>
+              </div>`
+                : ""
+            }
+
+            ${
+              flags.showReadUnlockHold
+                ? `
+              <div class="adm-review-actions adm-review-actions--read-unlock">
+                <p class="adm-read-unlock-note">自動判定では不適切な内容ですが、閲覧解除済みの状態になっています。モザイクを維持する場合は「閲覧解除待ちに戻す」を押してください。</p>
+                <div class="admin-actions">
+                  <button type="button" class="adm-btn-ghost" data-action="hold-read-unlock" data-id="${row.id}">閲覧解除待ちに戻す</button>
                 </div>
               </div>`
                 : ""
@@ -696,7 +738,8 @@
         paintContent();
         return;
       }
-      contentRoot.innerHTML = renderReviewDetail(row, getReviewActionFlags(row));
+      const flags = getReviewActionFlags(row);
+      contentRoot.innerHTML = renderReviewDetail(row, flags, flags.liveQuality);
       bindEvents(contentRoot);
       bindEditorHints();
       return;
@@ -812,6 +855,24 @@
             wasEdited: edited || productChanged,
           });
           App.showToast("口コミを更新しました");
+          invalidateKpiCache();
+          await loadTab(currentTab, { preserveSelection: true });
+        } catch (err) {
+          App.showToast(err.message, "error");
+          btn.disabled = false;
+        }
+      });
+    });
+
+    root.querySelectorAll("[data-action='hold-read-unlock']").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const row = editableRowsById.get(id) || listRows.find((r) => String(r.id) === String(id));
+        const liveQuality = row ? getLiveQualityAssessment(row) : null;
+        btn.disabled = true;
+        try {
+          await ReviewsApi.resetReadUnlockPending(id, liveQuality?.reasons);
+          App.showToast("閲覧解除を待ち状態に戻しました");
           invalidateKpiCache();
           await loadTab(currentTab, { preserveSelection: true });
         } catch (err) {

@@ -38,9 +38,52 @@
       .replace(/\s+/g, "");
   }
 
+  function latinLetterRatio(text) {
+    const chars = [...normalizeCompact(text)];
+    if (!chars.length) return 0;
+    const latin = chars.filter((c) => /[a-zA-Z]/.test(c)).length;
+    return latin / chars.length;
+  }
+
+  function japaneseScriptRatio(text) {
+    const chars = [...normalizeCompact(text)];
+    if (!chars.length) return 0;
+    const jp = chars.filter((c) => /[\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}]/u.test(c)).length;
+    return jp / chars.length;
+  }
+
+  function countLongLatinRuns(text) {
+    return (String(text || "").match(/[a-zA-Z]{6,}/g) || []).length;
+  }
+
+  function hasReadableJapaneseClause(text) {
+    return /[ぁ-んァ-ヶ一-龯]{8,}/u.test(String(text || ""));
+  }
+
+  function isGibberishText(text, minChars = 50) {
+    const trimmed = String(text || "").trim();
+    if (countChars(trimmed) < minChars) return false;
+
+    const latinRatio = latinLetterRatio(trimmed);
+    const jpRatio = japaneseScriptRatio(trimmed);
+    const longLatinRuns = countLongLatinRuns(trimmed);
+
+    if (longLatinRuns >= 2 && latinRatio > 0.25) return true;
+    if (latinRatio > 0.45) return true;
+    if (jpRatio < 0.2 && countChars(trimmed) >= 80) return true;
+    if (!hasReadableJapaneseClause(trimmed) && countChars(trimmed) >= minChars) return true;
+
+    const digitRatio = [...normalizeCompact(trimmed)].filter((c) => /\d/.test(c)).length / normalizeCompact(trimmed).length;
+    if (digitRatio > 0.15 && latinRatio > 0.15) return true;
+
+    return false;
+  }
+
   function isLowQualityText(text, minChars = 50) {
     const trimmed = String(text || "").trim();
     if (countChars(trimmed) < minChars) return false;
+
+    if (isGibberishText(trimmed, minChars)) return true;
 
     const compact = normalizeCompact(trimmed);
     if (!compact) return true;
@@ -130,10 +173,13 @@
       }
 
       if (isLowQualityText(text, field.minChars)) {
+        const gibberish = isGibberishText(text, field.minChars);
         reasons.push({
           field: field.key,
-          code: "low_quality",
-          message: `${field.label}の内容が具体性に欠けています（同じ文字の繰り返しなど）`,
+          code: gibberish ? "gibberish" : "low_quality",
+          message: gibberish
+            ? `${field.label}が意味のない文字列・適当な入力と判断されました`
+            : `${field.label}の内容が具体性に欠けています（同じ文字の繰り返しなど）`,
         });
       }
 
@@ -244,6 +290,7 @@
     REQUIRED_FIELDS,
     countChars,
     isLowQualityText,
+    isGibberishText,
     evaluateReviewBodies,
     evaluateReviewRow,
     readUnlockLabel,
