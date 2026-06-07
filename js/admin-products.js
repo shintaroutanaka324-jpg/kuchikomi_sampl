@@ -17,6 +17,7 @@
 
   let viewMode = "list";
   let listFilter = "all";
+  let categoryFilter = "all";
   let editingId = null;
   let editingIsStatic = false;
 
@@ -242,13 +243,43 @@
   }
 
   function filterProducts(products) {
+    let result = products;
     if (listFilter === "published") {
-      return products.filter((p) => isProductPublished(p));
+      result = result.filter((p) => isProductPublished(p));
+    } else if (listFilter === "hidden") {
+      result = result.filter((p) => !isProductPublished(p));
     }
-    if (listFilter === "hidden") {
-      return products.filter((p) => !isProductPublished(p));
+    if (categoryFilter !== "all") {
+      result = result.filter((p) => p.category === categoryFilter);
     }
-    return products;
+    return result;
+  }
+
+  function renderCategoryFilters(products) {
+    if (typeof CATEGORIES === "undefined") return "";
+
+    const counts = new Map();
+    products.forEach((p) => {
+      counts.set(p.category, (counts.get(p.category) || 0) + 1);
+    });
+
+    const chips = [
+      `<button type="button" class="admin-filter-chip ${categoryFilter === "all" ? "active" : ""}" data-category="all">すべて <span class="admin-filter-count">${products.length}</span></button>`,
+    ];
+
+    CATEGORIES.forEach((c) => {
+      const count = counts.get(c.value) || 0;
+      if (count === 0 && categoryFilter !== c.value) return;
+      chips.push(
+        `<button type="button" class="admin-filter-chip ${categoryFilter === c.value ? "active" : ""}" data-category="${c.value}">${App.escapeHtml(c.label)} <span class="admin-filter-count">${count}</span></button>`
+      );
+    });
+
+    return `
+      <div class="admin-filter-section">
+        <p class="admin-filter-label">カテゴリで絞り込み</p>
+        <div class="admin-filter-bar admin-filter-bar--scroll">${chips.join("")}</div>
+      </div>`;
   }
 
   function renderProductList(products) {
@@ -309,11 +340,16 @@
           </div>
           <button type="button" class="btn btn-trust" id="ap-show-create-form">＋ 新規サービスを追加</button>
         </div>
-        <div class="admin-product-filters" role="tablist">
-          <button type="button" class="admin-product-filter ${listFilter === "all" ? "active" : ""}" data-filter="all">すべて</button>
-          <button type="button" class="admin-product-filter ${listFilter === "published" ? "active" : ""}" data-filter="published">公開中</button>
-          <button type="button" class="admin-product-filter ${listFilter === "hidden" ? "active" : ""}" data-filter="hidden">非公開</button>
+        <div class="admin-filter-section">
+          <p class="admin-filter-label">公開状態</p>
+          <div class="admin-filter-bar" role="tablist">
+            <button type="button" class="admin-filter-chip ${listFilter === "all" ? "active" : ""}" data-filter="all">すべて</button>
+            <button type="button" class="admin-filter-chip ${listFilter === "published" ? "active" : ""}" data-filter="published">公開中</button>
+            <button type="button" class="admin-filter-chip ${listFilter === "hidden" ? "active" : ""}" data-filter="hidden">非公開</button>
+          </div>
         </div>
+        ${renderCategoryFilters(products)}
+        <p class="admin-product-hint" style="margin-bottom:0.75rem">表示中: ${filtered.length}件${filtered.length !== products.length ? `（全${products.length}件中）` : ""}</p>
         <div class="admin-product-list">${listHtml}</div>
       </section>`;
   }
@@ -442,9 +478,16 @@
       await render(root);
     });
 
-    root.querySelectorAll(".admin-product-filter").forEach((btn) => {
+    root.querySelectorAll("[data-filter]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         listFilter = btn.dataset.filter || "all";
+        await render(root);
+      });
+    });
+
+    root.querySelectorAll("[data-category]").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        categoryFilter = btn.dataset.category || "all";
         await render(root);
       });
     });

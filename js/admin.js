@@ -16,7 +16,8 @@ const EDITABLE_BODY_FIELDS = [
   { key: "body_other", label: "その他", optional: true, rows: 3 },
 ];
 
-let currentTab = "pending";
+let currentTab = "all";
+let categoryFilter = "all";
 const pendingRowsById = new Map();
 
 function formatPeriod(row) {
@@ -35,6 +36,101 @@ function countAdminChars(value) {
   return [...String(value || "")].length;
 }
 
+function getReviewCategory(row) {
+  if (row._category) return row._category;
+  const productId = row.product_id;
+  if (productId && typeof getProductById === "function") {
+    const product = getProductById(productId);
+    if (product?.category) return product.category;
+  }
+  return "other";
+}
+
+function legacyReviewToAdminRow(review) {
+  const product =
+    typeof getProductById === "function" ? getProductById(review.productId) : null;
+  return {
+    id: review.id,
+    status: "approved",
+    product_name: product?.title || review.title || "（不明）",
+    product_id: review.productId || null,
+    created_at: `${review.date}T12:00:00.000Z`,
+    purchase_price: review.purchasePrice || 0,
+    purchase_year: null,
+    purchase_month: null,
+    reviewer_display_name: review.userName || "匿名ユーザー",
+    cost_performance: review.costPerformance,
+    recommendation: review.recommendation,
+    support_quality: review.supportQuality,
+    content_satisfaction: review.contentSatisfaction,
+    result_realization: review.resultRealization,
+    body_pros: review.content || review.pros?.[0] || "",
+    body_concerns: review.cons?.[0] || "",
+    body_before: review.situation || "",
+    body_results: review.learned || "",
+    body_recommend: "",
+    _isStatic: true,
+    _category: product?.category || "other",
+  };
+}
+
+function getStaticReviewsForAdmin() {
+  if (typeof REVIEWS === "undefined") return [];
+  return REVIEWS.map(legacyReviewToAdminRow);
+}
+
+function annotateReviewRows(rows) {
+  return rows.map((row) => ({
+    ...row,
+    _category: row._category || getReviewCategory(row),
+    _isStatic: row._isStatic === true,
+  }));
+}
+
+function filterReviewsByCategory(rows) {
+  if (categoryFilter === "all") return rows;
+  return rows.filter((row) => getReviewCategory(row) === categoryFilter);
+}
+
+function renderCategoryFilters(allRows, filteredCount) {
+  const el = document.getElementById("admin-review-filters");
+  if (!el) return;
+
+  const counts = new Map();
+  allRows.forEach((row) => {
+    const cat = getReviewCategory(row);
+    counts.set(cat, (counts.get(cat) || 0) + 1);
+  });
+
+  const chips = [
+    `<button type="button" class="admin-filter-chip ${categoryFilter === "all" ? "active" : ""}" data-review-category="all">すべて <span class="admin-filter-count">${allRows.length}</span></button>`,
+  ];
+
+  if (typeof CATEGORIES !== "undefined") {
+    CATEGORIES.forEach((c) => {
+      const count = counts.get(c.value) || 0;
+      if (count === 0 && categoryFilter !== c.value) return;
+      chips.push(
+        `<button type="button" class="admin-filter-chip ${categoryFilter === c.value ? "active" : ""}" data-review-category="${c.value}">${App.escapeHtml(c.label)} <span class="admin-filter-count">${count}</span></button>`
+      );
+    });
+  }
+
+  el.innerHTML = `
+    <div class="admin-filter-section">
+      <p class="admin-filter-label">ジャンルで絞り込み</p>
+      <div class="admin-filter-bar admin-filter-bar--scroll">${chips.join("")}</div>
+      <p class="admin-product-hint">表示中: ${filteredCount}件${filteredCount !== allRows.length ? `（全${allRows.length}件中）` : ""}</p>
+    </div>`;
+
+  el.querySelectorAll("[data-review-category]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      categoryFilter = btn.dataset.reviewCategory || "all";
+      loadTab(currentTab);
+    });
+  });
+}
+
 function renderRatings(row) {
   return Object.entries(RATING_LABELS)
     .map(
@@ -46,10 +142,12 @@ function renderRatings(row) {
 
 function productOptions(selectedId) {
   const list = typeof getAllProducts === "function" ? getAllProducts() : PRODUCTS || [];
-  return list.map(
-    (p) =>
-      `<option value="${p.id}" ${p.id === selectedId ? "selected" : ""}>${App.escapeHtml(p.title)}</option>`
-  ).join("");
+  return list
+    .map(
+      (p) =>
+        `<option value="${p.id}" ${p.id === selectedId ? "selected" : ""}>${App.escapeHtml(p.title)}</option>`
+    )
+    .join("");
 }
 
 function renderBodyReadOnly(row) {
@@ -69,9 +167,7 @@ function renderBodyEditors(row) {
     </div>
     ${EDITABLE_BODY_FIELDS.map((field) => {
       const value = getBodyFieldValue(row, field.key);
-      const minLabel = field.optional
-        ? "任意"
-        : `最低${field.minChars}文字`;
+      const minLabel = field.optional ? "任意" : `最低${field.minChars}文字`;
       return `
         <div class="admin-field admin-field--body">
           <label for="edit-${field.key}-${row.id}">
@@ -90,10 +186,18 @@ function renderBodyEditors(row) {
 }
 
 function renderReviewCard(row, { showActions = false, showDelete = false } = {}) {
+  const isStatic = row._isStatic === true;
   const statusClass = `admin-status--${row.status}`;
   const editedBadge = row.was_edited_by_admin
     ? '<span class="admin-edited-badge">運営が内容を修正して公開</span>'
     : "";
+  const staticBadge = isStatic
+    ? '<span class="admin-product-source admin-product-source--static">デモデータ</span>'
+    : "";
+  const categoryLabel =
+    typeof getCategoryLabel === "function"
+      ? getCategoryLabel(getReviewCategory(row))
+      : getReviewCategory(row);
 
   return `
     <article class="admin-card" data-review-id="${row.id}">
@@ -105,6 +209,7 @@ function renderReviewCard(row, { showActions = false, showDelete = false } = {})
             ・ 購入価格: ${Number(row.purchase_price).toLocaleString()}円
             ・ 購入時期: ${formatPeriod(row)}
           </p>
+          <p class="admin-card-meta">ジャンル: ${App.escapeHtml(categoryLabel)} ${staticBadge}</p>
           ${editedBadge}
         </div>
         <span class="admin-status ${statusClass}">${ReviewsApi.statusLabel(row.status)}</span>
@@ -119,14 +224,28 @@ function renderReviewCard(row, { showActions = false, showDelete = false } = {})
       ${showActions ? renderBodyEditors(row) : renderBodyReadOnly(row)}
 
       ${
-        row.purchase_proof_path
+        !isStatic && row.purchase_proof_path
           ? `<p style="margin-top:0.75rem"><button type="button" class="admin-proof-link" data-proof-path="${App.escapeHtml(row.purchase_proof_path)}">購入証明を表示</button></p>`
-          : '<p class="admin-card-meta" style="margin-top:0.75rem">購入証明: 未提出</p>'
+          : !isStatic
+            ? '<p class="admin-card-meta" style="margin-top:0.75rem">購入証明: 未提出</p>'
+            : ""
       }
 
       ${
         row.rejection_reason
           ? `<p class="admin-card-meta" style="margin-top:0.75rem;color:#b45309">却下理由: ${App.escapeHtml(row.rejection_reason)}</p>`
+          : ""
+      }
+
+      ${
+        isStatic
+          ? `
+        <p class="admin-card-meta" style="margin-top:0.75rem">デモ用の静的口コミです。編集・削除は data.js で行ってください。</p>
+        ${
+          row.product_id
+            ? `<p style="margin-top:0.5rem"><a href="review-detail.html?id=${encodeURIComponent(row.product_id)}" class="btn btn-outline btn-sm" target="_blank" rel="noopener">サービスページで見る</a></p>`
+            : ""
+        }`
           : ""
       }
 
@@ -187,7 +306,9 @@ function wasContentEdited(row, content) {
 function bindEditorHints() {
   EDITABLE_BODY_FIELDS.forEach((field) => {
     document.querySelectorAll(`[id^="edit-${field.key}-"]`).forEach((textarea) => {
-      const hint = document.getElementById(`hint-${field.key}-${textarea.id.replace(`edit-${field.key}-`, "")}`);
+      const hint = document.getElementById(
+        `hint-${field.key}-${textarea.id.replace(`edit-${field.key}-`, "")}`
+      );
       const update = () => {
         const len = countAdminChars(textarea.value);
         const min = Number(textarea.dataset.minChars || 0);
@@ -213,6 +334,24 @@ function bindEditorHints() {
   });
 }
 
+async function fetchReviewsForTab(tab) {
+  let rows = [];
+
+  if (tab === "all") {
+    rows = await ReviewsApi.getAllReviewsAdmin();
+    rows = [...rows, ...getStaticReviewsForAdmin()];
+  } else if (tab === "pending") {
+    rows = await ReviewsApi.getPendingReviews();
+  } else if (tab === "approved") {
+    rows = await ReviewsApi.getReviewHistory("approved");
+    rows = [...rows, ...getStaticReviewsForAdmin()];
+  } else {
+    rows = await ReviewsApi.getReviewHistory("rejected");
+  }
+
+  return annotateReviewRows(rows);
+}
+
 async function loadTab(tab) {
   currentTab = tab;
   const root = document.getElementById("admin-root");
@@ -223,31 +362,29 @@ async function loadTab(tab) {
   });
 
   try {
-    let rows = [];
-    if (tab === "pending") {
-      rows = await ReviewsApi.getPendingReviews();
-    } else if (tab === "approved") {
-      rows = await ReviewsApi.getReviewHistory("approved");
-    } else {
-      rows = await ReviewsApi.getReviewHistory("rejected");
-    }
+    const allRows = await fetchReviewsForTab(tab);
+    const filtered = filterReviewsByCategory(allRows);
+
+    renderCategoryFilters(allRows, filtered.length);
 
     pendingRowsById.clear();
 
-    if (!rows.length) {
+    if (!filtered.length) {
       root.innerHTML = `<div class="admin-empty">表示する口コミはありません</div>`;
       return;
     }
 
     if (tab === "pending") {
-      rows.forEach((row) => pendingRowsById.set(row.id, row));
+      filtered
+        .filter((row) => !row._isStatic)
+        .forEach((row) => pendingRowsById.set(row.id, row));
     }
 
-    root.innerHTML = rows
+    root.innerHTML = filtered
       .map((row) =>
         renderReviewCard(row, {
-          showActions: tab === "pending",
-          showDelete: tab === "approved",
+          showActions: tab === "pending" && !row._isStatic,
+          showDelete: (tab === "approved" || tab === "all") && !row._isStatic && row.status === "approved",
         })
       )
       .join("");
@@ -255,6 +392,7 @@ async function loadTab(tab) {
     bindCardEvents();
     if (tab === "pending") bindEditorHints();
   } catch (err) {
+    document.getElementById("admin-review-filters").innerHTML = "";
     root.innerHTML = `<div class="admin-empty">${App.escapeHtml(err.message)}</div>`;
   }
 }
@@ -274,7 +412,6 @@ function bindCardEvents() {
   document.querySelectorAll("[data-action='approve']").forEach((btn) => {
     btn.addEventListener("click", async () => {
       const id = btn.dataset.id;
-      const card = document.querySelector(`[data-review-id="${id}"]`);
       btn.disabled = true;
       try {
         const productId = document.getElementById(`product-${id}`)?.value || null;
@@ -295,7 +432,6 @@ function bindCardEvents() {
         App.showToast(err.message, "error");
         btn.disabled = false;
       }
-      void card;
     });
   });
 
@@ -334,7 +470,7 @@ function bindCardEvents() {
       try {
         await ReviewsApi.deleteApprovedReview(id);
         App.showToast("口コミを削除しました");
-        await loadTab("approved");
+        await loadTab(currentTab);
       } catch (err) {
         App.showToast(err.message, "error");
         btn.disabled = false;
@@ -372,5 +508,5 @@ document.addEventListener("DOMContentLoaded", async () => {
     btn.addEventListener("click", () => loadTab(btn.dataset.tab));
   });
 
-  await loadTab("pending");
+  await loadTab("all");
 });

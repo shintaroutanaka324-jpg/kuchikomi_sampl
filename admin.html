@@ -15,14 +15,17 @@
     <div class="container page-inner page-inner--medium">
       <header class="admin-header">
         <h1>口コミ審査（運営）</h1>
-        <p>投稿された口コミを確認し、必要に応じて内容を修正してから公開できます。</p>
+        <p>すべての口コミを一覧で管理できます。ジャンルで絞り込み、審査・公開・削除を行えます。</p>
       </header>
 
       <div class="admin-tabs" role="tablist">
-        <button type="button" class="admin-tab active" data-tab="pending" role="tab">審査待ち</button>
+        <button type="button" class="admin-tab active" data-tab="all" role="tab">すべて</button>
+        <button type="button" class="admin-tab" data-tab="pending" role="tab">審査待ち</button>
         <button type="button" class="admin-tab" data-tab="approved" role="tab">公開済み</button>
         <button type="button" class="admin-tab" data-tab="rejected" role="tab">却下</button>
       </div>
+
+      <div id="admin-review-filters"></div>
 
       <div id="admin-root"></div>
     </div>

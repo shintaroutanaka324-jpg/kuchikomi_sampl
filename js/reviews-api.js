@@ -349,10 +349,26 @@
     ensureConfigured();
     if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
 
-    let query = getClient().from("submitted_reviews").select("*").order("reviewed_at", { ascending: false }).limit(50);
+    let query = getClient()
+      .from("submitted_reviews")
+      .select("*")
+      .order("reviewed_at", { ascending: false });
     if (status) query = query.eq("status", status);
 
     const { data, error } = await query;
+    if (error) throw new Error(error.message);
+    return data || [];
+  }
+
+  async function getAllReviewsAdmin() {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .select("*")
+      .order("created_at", { ascending: false });
+
     if (error) throw new Error(error.message);
     return data || [];
   }
@@ -508,6 +524,7 @@
     getMyReviews,
     getPendingReviews,
     getReviewHistory,
+    getAllReviewsAdmin,
     getProofSignedUrl,
     approveReview,
     rejectReview,
