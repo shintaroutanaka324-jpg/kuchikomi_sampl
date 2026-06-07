@@ -586,7 +586,7 @@ main {
   position: absolute;
   right: 0;
   top: calc(100% + 0.5rem);
-  width: min(16rem, calc(100vw - 2 * var(--site-gutter)));
+  width: min(18rem, calc(100vw - 2 * var(--site-gutter)));
   background: #fff;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
@@ -605,6 +605,32 @@ main {
   line-height: 1.45;
   border-bottom: 1px solid var(--gray-100);
   margin: 0;
+}
+
+.dropdown--account a {
+  white-space: normal;
+  line-height: 1.45;
+}
+
+.mobile-account-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gray-200);
+}
+
+.mobile-account-link {
+  display: block;
+  padding: 0.65rem 0.25rem;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.mobile-account-link:hover {
+  color: var(--trust-700);
 }
 
 .dropdown.open {

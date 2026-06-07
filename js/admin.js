@@ -211,15 +211,6 @@ async function loadTab(tab) {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
 
-  if (tab === "products") {
-    if (window.AdminProducts?.render) {
-      await AdminProducts.render(root);
-    } else {
-      root.innerHTML = `<div class="admin-empty">サービス管理の読み込みに失敗しました</div>`;
-    }
-    return;
-  }
-
   try {
     let rows = [];
     if (tab === "pending") {

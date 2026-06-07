@@ -201,6 +201,24 @@
     });
   }
 
+  function renderAccountMenuLinks() {
+    let html = `<a href="my-reviews.html">投稿した口コミ</a>`;
+    if (window.Auth?.isAdmin?.()) {
+      html += `<a href="admin.html">口コミ審査（運営）</a>`;
+      html += `<a href="admin-services.html">サービス管理（運営）</a>`;
+    }
+    return html;
+  }
+
+  function renderMobileAccountLinks() {
+    let html = `<a href="my-reviews.html" class="mobile-account-link">投稿した口コミ</a>`;
+    if (window.Auth?.isAdmin?.()) {
+      html += `<a href="admin.html" class="mobile-account-link">口コミ審査（運営）</a>`;
+      html += `<a href="admin-services.html" class="mobile-account-link">サービス管理（運営）</a>`;
+    }
+    return html;
+  }
+
   function renderHeader() {
     const el = document.getElementById("site-header");
     if (!el) return;
@@ -232,10 +250,9 @@
                   ${isPaid ? '<span class="member-badge">有料会員</span>' : ""}
                   <span class="user-btn-caret" aria-hidden="true">▼</span>
                 </button>
-                <div class="dropdown" id="user-dropdown">
+                <div class="dropdown dropdown--account" id="user-dropdown">
                   ${userEmail ? `<p class="dropdown-email">${escapeHtml(userEmail)}</p>` : ""}
-                  <a href="my-reviews.html">投稿した口コミ</a>
-                  ${window.Auth?.isAdmin?.() ? '<a href="admin.html">口コミ審査（運営）</a>' : ""}
+                  ${renderAccountMenuLinks()}
                   <hr>
                   <button type="button" id="logout-btn">ログアウト</button>
                 </div>
@@ -268,6 +285,13 @@
           <div class="mobile-nav-links">
             ${renderSubNavLinks(current, { mobile: true })}
           </div>
+          ${
+            loggedIn
+              ? `<nav class="mobile-account-links" aria-label="アカウント">
+                  ${renderMobileAccountLinks()}
+                </nav>`
+              : ""
+          }
           <div class="mobile-nav-actions">
           ${
             loggedIn
