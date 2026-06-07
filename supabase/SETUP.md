@@ -83,7 +83,8 @@ SQL Editor で `supabase/schema-email-check.sql` を実行してください。
 3. 続けて `supabase/schema-reviews-admin-edit.sql` も実行（運営による口コミ修正の記録。**公開・編集で必須**）
 4. 続けて `supabase/schema-reviews-hidden.sql` も実行（口コミの非表示機能。**運営がサイトから隠す場合に必須**）
 5. 続けて `supabase/schema-reviews-read-unlock.sql` も実行（ルールベースの全文閲覧解除。**口コミ投稿時のモザイク解除に必須**）
-6. **Storage** → `purchase-proofs` バケットが作成されていることを確認
+6. 続けて `supabase/schema-reviews-submit-fields.sql` も実行（サービス名・販売者名の分離、返金保証項目。**口コミ投稿フォーム更新後に必須**）
+7. **Storage** → `purchase-proofs` バケットが作成されていることを確認
 
 ### 運営者アカウントの設定
 

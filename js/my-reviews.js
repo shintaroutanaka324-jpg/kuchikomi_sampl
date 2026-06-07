@@ -20,6 +20,7 @@ function renderMyReviewCard(row) {
       <div class="admin-card-head">
         <div>
           <h2 class="admin-card-title">${App.escapeHtml(row.product_name)}</h2>
+          ${row.seller_name ? `<p class="admin-card-meta">${App.escapeHtml(row.seller_name)}</p>` : ""}
           <p class="admin-card-meta">投稿日: ${formatDateJa(row.created_at.split("T")[0])}</p>
         </div>
         <span class="admin-status ${statusClass}">${ReviewsApi.statusLabel(row.status, row)}</span>

@@ -33,6 +33,15 @@
     return `${row.purchase_year}年${row.purchase_month}月頃`;
   }
 
+  function refundGuaranteeLabel(value) {
+    const map = {
+      yes: "返金保証あり",
+      no: "返金保証なし",
+      unknown: "不明・記載なし",
+    };
+    return map[value] || "—";
+  }
+
   function getBodyFieldValue(row, key) {
     if (key === "body_results") return row.body_results || row.body_learnings || "";
     if (key === "body_before") return row.body_before || row.body_situation || "";
@@ -516,6 +525,8 @@
                 ${App.escapeHtml(row.reviewer_display_name)} · 投稿 ${formatDateJa(row.created_at.split("T")[0])}
                 · 購入 ${Number(row.purchase_price).toLocaleString()}円（${formatPeriod(row)}）
                 · ${App.escapeHtml(categoryLabel)}
+                ${row.seller_name ? ` · ${App.escapeHtml(row.seller_name)}` : ""}
+                ${row.has_refund_guarantee ? ` · 返金保証: ${App.escapeHtml(refundGuaranteeLabel(row.has_refund_guarantee))}` : ""}
               </p>
             </div>
           </div>

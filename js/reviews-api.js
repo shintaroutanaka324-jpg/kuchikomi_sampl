@@ -116,6 +116,14 @@
     return approvedCache;
   }
 
+  function isMissingSubmitFieldsColumnError(error) {
+    const msg = error?.message || "";
+    return (
+      (msg.includes("seller_name") || msg.includes("has_refund_guarantee")) &&
+      msg.includes("schema cache")
+    );
+  }
+
   function isMissingReadUnlockColumnError(error) {
     const msg = error?.message || "";
     return (
@@ -230,7 +238,17 @@
     const user = window.Auth.getUser();
     const year = document.getElementById("purchaseYear")?.value;
     const month = document.getElementById("purchaseMonth")?.value;
-    const productId = findProductIdByName(formData.productName);
+    const serviceName = (formData.serviceName || formData.productName || "").trim();
+    const sellerName = (formData.sellerName || "").trim();
+    const hasRefundGuarantee = formData.hasRefundGuarantee || "";
+
+    if (!serviceName) throw new Error("サービス名を入力してください");
+    if (!sellerName) throw new Error("チャンネル・企業名を入力してください");
+    if (!["yes", "no", "unknown"].includes(hasRefundGuarantee)) {
+      throw new Error("返金保証の有無を選択してください");
+    }
+
+    const productId = findProductIdByName(serviceName);
     const reviewerName = `匿名ユーザー${String(user.id).slice(0, 4).toUpperCase()}`;
 
     const ratingKeyMap = {
@@ -297,7 +315,9 @@
       read_unlock_status: readUnlockStatus,
       quality_flags: quality.reasons,
       product_id: productId,
-      product_name: formData.productName,
+      product_name: serviceName,
+      seller_name: sellerName,
+      has_refund_guarantee: hasRefundGuarantee,
       purchase_price: Number(formData.purchasePrice),
       purchase_year: year ? Number(year) : null,
       purchase_month: month ? Number(month) : null,
@@ -326,6 +346,17 @@
       .insert(insertPayload)
       .select("*")
       .single());
+
+    if (insertError && isMissingSubmitFieldsColumnError(insertError)) {
+      const fallbackPayload = { ...insertPayload };
+      delete fallbackPayload.seller_name;
+      delete fallbackPayload.has_refund_guarantee;
+      ({ data: created, error: insertError } = await client
+        .from("submitted_reviews")
+        .insert(fallbackPayload)
+        .select("*")
+        .single());
+    }
 
     if (insertError && isMissingReadUnlockColumnError(insertError)) {
       const fallbackPayload = { ...insertPayload };

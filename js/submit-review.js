@@ -6,6 +6,12 @@ const RATING_SCALE = [
   { stars: 1, label: "不満" },
 ];
 
+const REFUND_GUARANTEE_OPTIONS = [
+  { value: "yes", label: "返金保証がある" },
+  { value: "no", label: "返金保証はない" },
+  { value: "unknown", label: "わからない・記載がなかった" },
+];
+
 const RATING_ITEMS = [
   { key: "costPerformance", label: "コスパ", desc: "価格に見合った内容か", icon: "coin" },
   { key: "recommendation", label: "難易度・継続", desc: "続けやすさ・学びやすさ", icon: "repeat" },
@@ -234,6 +240,26 @@ function formatRatingStars(value) {
   return `${"★".repeat(full)}${half ? "⯨" : ""}${"☆".repeat(5 - full - (half ? 1 : 0))}（${v}）`;
 }
 
+function refundGuaranteeLabel(value) {
+  return REFUND_GUARANTEE_OPTIONS.find((o) => o.value === value)?.label || value || "—";
+}
+
+function renderRefundGuaranteeField() {
+  return `
+    <fieldset class="sr-refund-field form-group">
+      <legend class="form-label">返金保証はありましたか？ <span class="sr-required">*</span></legend>
+      <div class="sr-refund-options">
+        ${REFUND_GUARANTEE_OPTIONS.map(
+          (opt) => `
+          <label class="sr-refund-option">
+            <input type="radio" name="hasRefundGuarantee" value="${opt.value}" required />
+            <span>${App.escapeHtml(opt.label)}</span>
+          </label>`
+        ).join("")}
+      </div>
+    </fieldset>`;
+}
+
 function renderRatingRows() {
   return RATING_ITEMS.map(
     (item, index) => `
@@ -241,7 +267,7 @@ function renderRatingRows() {
       <div class="sr-rating-row-label">
         ${renderItemIcon(item)}
         <div>
-          <strong>${item.label}</strong>
+          <strong>${item.label} <span class="sr-required" aria-hidden="true">*</span></strong>
           <span class="sr-detail-desc">${App.escapeHtml(item.desc)}</span>
         </div>
       </div>
@@ -356,8 +382,13 @@ function collectFormData() {
   const month = document.getElementById("purchaseMonth")?.value;
   const monthLabel = MONTH_OPTIONS.find((m) => m.value === month)?.label || "";
 
+  const refundEl = document.querySelector('input[name="hasRefundGuarantee"]:checked');
+
   return {
-    productName: document.getElementById("productName")?.value.trim() || "",
+    serviceName: document.getElementById("serviceName")?.value.trim() || "",
+    sellerName: document.getElementById("sellerName")?.value.trim() || "",
+    productName: document.getElementById("serviceName")?.value.trim() || "",
+    hasRefundGuarantee: refundEl?.value || "",
     purchasePrice: document.getElementById("purchasePrice")?.value || "",
     purchasePeriod: year && month ? `${year}年${monthLabel}頃` : "",
     purchaseProofName: proofInput?.files?.[0]?.name || "未提出",
@@ -384,7 +415,9 @@ function renderConfirmScreen(data) {
         <div class="sr-confirm-block">
           <h3>購入情報</h3>
           <dl class="sr-confirm-dl">
-            <div><dt>商品・サービス名</dt><dd>${App.escapeHtml(data.productName)}</dd></div>
+            <div><dt>サービス名</dt><dd>${App.escapeHtml(data.serviceName)}</dd></div>
+            <div><dt>チャンネル・企業名</dt><dd>${App.escapeHtml(data.sellerName)}</dd></div>
+            <div><dt>返金保証</dt><dd>${App.escapeHtml(refundGuaranteeLabel(data.hasRefundGuarantee))}</dd></div>
             <div><dt>購入価格</dt><dd>${App.escapeHtml(Number(data.purchasePrice).toLocaleString())}円</dd></div>
             <div><dt>購入時期</dt><dd>${App.escapeHtml(data.purchasePeriod)}</dd></div>
             <div><dt>購入証明</dt><dd>${App.escapeHtml(data.purchaseProofName)}</dd></div>
@@ -536,10 +569,18 @@ document.addEventListener("DOMContentLoaded", async () => {
             </header>
             <div class="sr-panel-body sr-info-grid">
               <div class="form-group">
-                <label class="form-label" for="productName">商品・サービス名 <span class="sr-required">*</span></label>
-                <input type="text" class="form-input" id="productName" required
+                <label class="form-label" for="serviceName">サービス名 <span class="sr-required">*</span></label>
+                <input type="text" class="form-input" id="serviceName" required
                   placeholder="例: YouTubeで月収100万円を達成する完全ロードマップ" />
+                <p class="form-hint">講座名・商品名・サービス名を入力してください</p>
               </div>
+              <div class="form-group">
+                <label class="form-label" for="sellerName">チャンネル・企業名 <span class="sr-required">*</span></label>
+                <input type="text" class="form-input" id="sellerName" required
+                  placeholder="例: ○○チャンネル / 株式会社△△ / 山田太郎" />
+                <p class="form-hint">YouTubeチャンネル名、販売会社名、講師名などを入力してください</p>
+              </div>
+              ${renderRefundGuaranteeField()}
               <div class="form-group">
                 <label class="form-label" for="purchasePrice">購入価格（円） <span class="sr-required">*</span></label>
                 <input type="number" class="form-input" id="purchasePrice" required min="0" placeholder="98000" />
@@ -573,7 +614,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             </header>
             <div class="sr-panel-body">
               <div class="sr-subsection">
-                <h3 class="sr-subsection-title">評価</h3>
+                <h3 class="sr-subsection-title">評価 <span class="sr-required">*</span></h3>
+                <p class="form-hint sr-rating-intro">5項目すべて星評価が必須です（0.5刻み可）</p>
                 <div class="sr-rating-list">${renderRatingRows()}</div>
               </div>
               <div class="sr-subsection sr-subsection--body">
@@ -698,12 +740,16 @@ function getQualityInvalidFields() {
 
 function collectValidationErrors() {
   const errors = [];
-  const productName = document.getElementById("productName")?.value.trim();
+  const serviceName = document.getElementById("serviceName")?.value.trim();
+  const sellerName = document.getElementById("sellerName")?.value.trim();
+  const hasRefundGuarantee = document.querySelector('input[name="hasRefundGuarantee"]:checked')?.value;
   const purchasePrice = document.getElementById("purchasePrice")?.value;
   const purchaseYear = document.getElementById("purchaseYear")?.value;
   const purchaseMonth = document.getElementById("purchaseMonth")?.value;
 
-  if (!productName) errors.push("商品・サービス名を入力してください");
+  if (!serviceName) errors.push("サービス名を入力してください");
+  if (!sellerName) errors.push("チャンネル・企業名を入力してください");
+  if (!hasRefundGuarantee) errors.push("返金保証の有無を選択してください");
   if (purchasePrice === "" || Number(purchasePrice) < 0) errors.push("購入価格を入力してください");
   if (!purchaseYear || !purchaseMonth) errors.push("購入時期を選択してください");
 
@@ -767,7 +813,7 @@ function validateForm(showErrors = false) {
 function initFormValidation() {
   const form = document.getElementById("review-form");
   form
-    .querySelectorAll("#productName, #purchasePrice, #purchaseYear, #purchaseMonth, .sr-textarea")
+    .querySelectorAll("#serviceName, #sellerName, #purchasePrice, #purchaseYear, #purchaseMonth, .sr-textarea, input[name='hasRefundGuarantee']")
     .forEach((el) => {
       el.addEventListener("input", () => validateForm());
       el.addEventListener("change", () => validateForm());

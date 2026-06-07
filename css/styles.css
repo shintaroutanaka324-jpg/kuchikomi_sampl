@@ -7370,6 +7370,40 @@ main {
 
 .sr-required {
   color: #dc2626;
+  font-weight: 700;
+}
+
+.sr-rating-intro {
+  margin: -0.25rem 0 0.75rem;
+}
+
+.sr-refund-field {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.sr-refund-field .form-label {
+  margin-bottom: 0.5rem;
+}
+
+.sr-refund-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.sr-refund-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9375rem;
+  color: var(--gray-800);
+  cursor: pointer;
+}
+
+.sr-refund-option input {
+  flex-shrink: 0;
 }
 
 .sr-optional {
