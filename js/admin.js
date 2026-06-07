@@ -45,8 +45,8 @@ function renderRatings(row) {
 }
 
 function productOptions(selectedId) {
-  if (typeof PRODUCTS === "undefined") return "";
-  return PRODUCTS.map(
+  const list = typeof getAllProducts === "function" ? getAllProducts() : PRODUCTS || [];
+  return list.map(
     (p) =>
       `<option value="${p.id}" ${p.id === selectedId ? "selected" : ""}>${App.escapeHtml(p.title)}</option>`
   ).join("");
@@ -210,6 +210,15 @@ async function loadTab(tab) {
   document.querySelectorAll(".admin-tab").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tab === tab);
   });
+
+  if (tab === "products") {
+    if (window.AdminProducts?.render) {
+      await AdminProducts.render(root);
+    } else {
+      root.innerHTML = `<div class="admin-empty">サービス管理の読み込みに失敗しました</div>`;
+    }
+    return;
+  }
 
   try {
     let rows = [];

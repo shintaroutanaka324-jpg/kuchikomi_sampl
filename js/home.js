@@ -165,7 +165,7 @@ function renderReviews() {
   const carousel = document.getElementById("home-reviews-carousel");
   if (!track || typeof REVIEWS === "undefined") return;
 
-  const productMap = Object.fromEntries(PRODUCTS.map((p) => [p.id, p]));
+  const productMap = Object.fromEntries(getAllProducts().map((p) => [p.id, p]));
   const items =
     typeof getLatestReviews === "function" ? getLatestReviews(HOME_REVIEWS_LIMIT) : [...REVIEWS];
   const pages = [];

@@ -24,11 +24,11 @@
   }
 
   function findProductIdByName(name) {
-    if (typeof PRODUCTS === "undefined") return null;
+    const list = typeof getAllProducts === "function" ? getAllProducts() : PRODUCTS || [];
     const trimmed = name.trim();
-    const exact = PRODUCTS.find((p) => p.title === trimmed);
+    const exact = list.find((p) => p.title === trimmed);
     if (exact) return exact.id;
-    const partial = PRODUCTS.find(
+    const partial = list.find(
       (p) => p.title.includes(trimmed) || trimmed.includes(p.title)
     );
     return partial?.id ?? null;

@@ -251,9 +251,11 @@ function renderBasicInfoCard(product) {
 }
 
 function getRelatedProducts(product) {
-  return PRODUCTS.filter((p) => p.id !== product.id && p.category === product.category)
+  const all = getAllProducts();
+  return all
+    .filter((p) => p.id !== product.id && p.category === product.category)
     .slice(0, 6)
-    .concat(PRODUCTS.filter((p) => p.id !== product.id && p.category !== product.category).slice(0, 4))
+    .concat(all.filter((p) => p.id !== product.id && p.category !== product.category).slice(0, 4))
     .slice(0, 8);
 }
 

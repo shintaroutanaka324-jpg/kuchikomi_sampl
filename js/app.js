@@ -29,6 +29,8 @@
     await window.Auth.whenReady();
     await loadScript("js/reviews-api.js");
     await window.ReviewsApi?.whenReady?.();
+    await loadScript("js/products-api.js");
+    await window.ProductsApi?.whenReady?.();
     await loadScript("js/billing-api.js");
   })();
 

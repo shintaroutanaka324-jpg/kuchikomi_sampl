@@ -14,14 +14,15 @@
   <main class="page-content admin-page">
     <div class="container page-inner page-inner--medium">
       <header class="admin-header">
-        <h1>口コミ審査（運営）</h1>
-        <p>投稿された口コミを確認し、必要に応じて内容を修正してから公開できます。</p>
+        <h1>運営管理</h1>
+        <p>口コミの審査・公開、およびサービス（商品）の追加・編集ができます。</p>
       </header>
 
       <div class="admin-tabs" role="tablist">
         <button type="button" class="admin-tab active" data-tab="pending" role="tab">審査待ち</button>
         <button type="button" class="admin-tab" data-tab="approved" role="tab">公開済み</button>
         <button type="button" class="admin-tab" data-tab="rejected" role="tab">却下</button>
+        <button type="button" class="admin-tab" data-tab="products" role="tab">サービス管理</button>
       </div>
 
       <div id="admin-root"></div>
@@ -32,6 +33,7 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/admin-products.js"></script>
   <script src="js/admin.js"></script>
 </body>
 </html>

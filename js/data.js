@@ -465,8 +465,22 @@ function getCategoryLabel(value) {
   return CATEGORIES.find((c) => c.value === value)?.label || value;
 }
 
+let _dbProducts = [];
+
+function setDbProducts(products) {
+  _dbProducts = Array.isArray(products) ? products : [];
+}
+
+/** 静的データ（data.js）と DB 登録サービスを統合 */
+function getAllProducts() {
+  const dbIds = new Set(_dbProducts.map((p) => p.id));
+  const staticOnly = PRODUCTS.filter((p) => !dbIds.has(p.id));
+  return [..._dbProducts, ...staticOnly];
+}
+
 function getProductById(id) {
-  return PRODUCTS.find((p) => p.id === id);
+  if (!id) return undefined;
+  return getAllProducts().find((p) => p.id === id);
 }
 
 let _approvedDbReviews = [];

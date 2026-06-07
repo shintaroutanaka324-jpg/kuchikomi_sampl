@@ -14,7 +14,9 @@ const REVIEW_COUNT_FILTERS = [
   { value: "50", label: "50件以上" },
 ];
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await App.whenReady();
+
   const sortSelect = document.getElementById("filter-sort");
   const proofCheckbox = document.getElementById("filter-proof");
   const filterPanel = document.getElementById("rs-filter");
@@ -26,7 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let selectedRating = "";
   let selectedReviewCount = "";
 
-  const allProducts = PRODUCTS.map((product) => ({
+  const allProducts = getAllProducts().map((product) => ({
     product,
     stats: getProductDisplayStats(product),
   }));
