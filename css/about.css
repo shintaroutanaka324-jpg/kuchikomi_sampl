@@ -48,9 +48,20 @@
 
 .about-hero-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 3rem;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
   align-items: center;
+}
+
+.about-hero-copy {
+  min-width: 0;
+}
+
+@media (min-width: 1024px) {
+  .about-hero-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 3rem;
+  }
 }
 
 .about-hero-eyebrow {
@@ -722,7 +733,6 @@
 
 /* Responsive */
 @media (max-width: 1023px) {
-  .about-hero-grid,
   .about-why-grid {
     grid-template-columns: 1fr;
     gap: 2.5rem;
@@ -779,6 +789,10 @@
 
   .about-hero {
     padding: 2rem 0 3.5rem;
+  }
+
+  .about-hero-visual {
+    display: none;
   }
 
   .about-hero-actions {

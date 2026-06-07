@@ -172,12 +172,26 @@
     return img + name;
   }
 
+  let userMenuClickBound = false;
+
+  function bindUserMenuDismiss() {
+    if (userMenuClickBound) return;
+    userMenuClickBound = true;
+    document.addEventListener("click", (e) => {
+      const menu = document.querySelector(".user-menu");
+      if (menu && !menu.contains(e.target)) {
+        document.getElementById("user-dropdown")?.classList.remove("open");
+      }
+    });
+  }
+
   function renderHeader() {
     const el = document.getElementById("site-header");
     if (!el) return;
 
     const loggedIn = isLoggedIn();
     const userName = getUserName();
+    const userEmail = getUserEmail();
     const isPaid = window.Auth?.isPaidMember?.() ?? false;
     const current = getCurrentPage();
 
@@ -198,11 +212,12 @@
               <div class="user-menu">
                 <button type="button" class="user-btn" id="user-menu-btn">
                   <span class="avatar">👤</span>
-                  <span style="max-width:100px;overflow:hidden;text-overflow:ellipsis;font-size:0.875rem">${userName}</span>
+                  <span class="user-name">${escapeHtml(userName)}</span>
                   ${isPaid ? '<span class="member-badge">有料会員</span>' : ""}
-                  <span>▼</span>
+                  <span class="user-btn-caret" aria-hidden="true">▼</span>
                 </button>
                 <div class="dropdown" id="user-dropdown">
+                  ${userEmail ? `<p class="dropdown-email">${escapeHtml(userEmail)}</p>` : ""}
                   <a href="my-reviews.html">投稿した口コミ</a>
                   ${window.Auth?.isAdmin?.() ? '<a href="admin.html">口コミ審査（運営）</a>' : ""}
                   <hr>
@@ -217,20 +232,34 @@
           <button type="button" class="menu-toggle" id="menu-toggle" aria-label="メニュー">☰</button>
         </div>
         <div class="container mobile-nav" id="mobile-nav">
-          <form id="mobile-search-form" style="margin-bottom:1rem">
+          ${
+            loggedIn
+              ? `<div class="mobile-user-bar">
+                  <span class="avatar" aria-hidden="true">👤</span>
+                  <div class="mobile-user-info">
+                    <span class="user-name">${escapeHtml(userName)}</span>
+                    ${userEmail ? `<span class="user-email">${escapeHtml(userEmail)}</span>` : ""}
+                    ${isPaid ? '<span class="member-badge">有料会員</span>' : ""}
+                  </div>
+                </div>`
+              : ""
+          }
+          <form id="mobile-search-form" class="mobile-search-form">
             <div class="search-wrap">
-              <input type="text" class="search-input" id="mobile-search" placeholder="発信者名・アカウント名で口コミを検索..." style="padding-left:0.75rem" />
+              <input type="text" class="search-input mobile-search-input" id="mobile-search" placeholder="発信者名・アカウント名で口コミを検索..." />
             </div>
           </form>
           <div class="mobile-nav-links">
             ${renderSubNavLinks(current, { mobile: true })}
           </div>
+          <div class="mobile-nav-actions">
           ${
             loggedIn
-              ? `<button type="button" class="btn btn-ghost" id="mobile-logout" style="margin-top:0.5rem">ログアウト</button>`
-              : `<a href="login.html" class="btn btn-ghost" style="margin-top:0.5rem">ログイン</a>
-                 <a href="register.html" class="btn btn-trust" style="margin-top:0.5rem">新規登録</a>`
+              ? `<button type="button" class="btn btn-ghost btn-block" id="mobile-logout">ログアウト</button>`
+              : `<a href="login.html" class="btn btn-ghost btn-block">ログイン</a>
+                 <a href="register.html" class="btn btn-trust btn-block">新規登録</a>`
           }
+          </div>
         </div>
       </header>
       <nav class="sub-nav" aria-label="メインナビゲーション">
@@ -264,13 +293,6 @@
 
     document.getElementById("logout-btn")?.addEventListener("click", logout);
     document.getElementById("mobile-logout")?.addEventListener("click", logout);
-
-    document.addEventListener("click", (e) => {
-      const menu = document.querySelector(".user-menu");
-      if (menu && !menu.contains(e.target)) {
-        document.getElementById("user-dropdown")?.classList.remove("open");
-      }
-    });
   }
 
   async function logout() {
@@ -380,6 +402,7 @@
   }
 
   document.addEventListener("DOMContentLoaded", async () => {
+    bindUserMenuDismiss();
     await whenReady();
     renderHeader();
     renderFooter();
