@@ -15,7 +15,6 @@
     isPublished: true,
   };
 
-  let listFilter = "all";
   let categoryFilter = "all";
   let searchQuery = "";
   let editingId = null;
@@ -112,8 +111,6 @@
 
   function filterProducts(products) {
     let result = products;
-    if (listFilter === "published") result = result.filter((p) => isProductPublished(p));
-    else if (listFilter === "hidden") result = result.filter((p) => !isProductPublished(p));
     if (categoryFilter !== "all") result = result.filter((p) => p.category === categoryFilter);
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -166,7 +163,9 @@
               : p.source === "static"
                 ? "—"
                 : "—";
-            const canToggle = p.source === "db";
+            const toggleTitle = published
+              ? "公開中（クリックで非公開）"
+              : "非公開（クリックで公開）";
 
             return `<tr data-product-id="${App.escapeHtml(p.id)}">
               <td>
@@ -183,11 +182,7 @@
               <td>${S.renderStars(rating)} <span style="color:#6b7280;font-size:0.75rem">${rating ? rating.toFixed(1) : "—"}</span></td>
               <td><div class="adm-pv-cell">${pv.toLocaleString("ja-JP")}${S.sparklineSvg(p.id)}</div></td>
               <td>
-                ${
-                  canToggle
-                    ? `<button type="button" class="adm-toggle ${published ? "is-on" : ""}" data-action="toggle-product" data-id="${App.escapeHtml(p.id)}" data-published="${published}" aria-label="公開切替"></button>`
-                    : `<span class="adm-cat-pill">公開</span>`
-                }
+                <button type="button" class="adm-toggle ${published ? "is-on" : ""}" data-action="toggle-product" data-id="${App.escapeHtml(p.id)}" data-static="${p.source === "static" ? "1" : "0"}" data-published="${published}" aria-label="${toggleTitle}" title="${toggleTitle}"></button>
               </td>
               <td style="white-space:nowrap;color:#9ca3af;font-size:0.75rem">${regDate}</td>
               <td>
@@ -195,10 +190,9 @@
                   <a href="review-detail.html?id=${encodeURIComponent(p.id)}" class="adm-action-btn" target="_blank" rel="noopener" title="プレビュー">👁</a>
                   <button type="button" class="adm-action-btn" data-action="edit-product" data-id="${App.escapeHtml(p.id)}" data-static="${p.source === "static" ? "1" : "0"}" title="編集">✎</button>
                   ${
-                    canToggle
-                      ? `<button type="button" class="adm-action-btn" data-action="toggle-product" data-id="${App.escapeHtml(p.id)}" data-published="${published}" title="公開切替">◐</button>
-                         <button type="button" class="adm-action-btn is-danger" data-action="delete-product" data-id="${App.escapeHtml(p.id)}" title="削除">✕</button>`
-                      : `<button type="button" class="adm-action-btn" data-action="hide-static" data-id="${App.escapeHtml(p.id)}" title="非表示">◐</button>`
+                    p.source === "db"
+                      ? `<button type="button" class="adm-action-btn is-danger" data-action="delete-product" data-id="${App.escapeHtml(p.id)}" title="削除">✕</button>`
+                      : ""
                   }
                 </div>
               </td>
@@ -219,10 +213,6 @@
     return `
       <div class="adm-panel">
         <div class="adm-toolbar">
-          <button type="button" class="adm-chip ${listFilter === "all" ? "active" : ""}" data-filter="all">すべて</button>
-          <button type="button" class="adm-chip ${listFilter === "published" ? "active" : ""}" data-filter="published">公開中</button>
-          <button type="button" class="adm-chip ${listFilter === "hidden" ? "active" : ""}" data-filter="hidden">非公開</button>
-          <span style="width:1px;height:1.25rem;background:#e5e7eb;margin:0 0.25rem"></span>
           <button type="button" class="adm-chip ${categoryFilter === "all" ? "active" : ""}" data-category="all">全カテゴリ</button>
           ${catChips}
         </div>
@@ -422,6 +412,28 @@
     });
   }
 
+  async function applyProductVisibility(product, publish) {
+    const api = await ensureProductsApi();
+    const isDb = product.source === "db" || product.isDbProduct;
+
+    if (isDb) {
+      await api.setProductPublished(product.id, publish);
+      return;
+    }
+
+    const dbOverride =
+      typeof getAllProductsAdmin === "function"
+        ? getAllProductsAdmin().find((p) => p.id === product.id && p.isDbProduct)
+        : null;
+
+    if (dbOverride) {
+      await api.setProductPublished(product.id, publish);
+      return;
+    }
+
+    await api.createProduct(staticProductToInput(product, { isPublished: publish }));
+  }
+
   function bindListEvents(root, products) {
     const openCreate = () => {
       editingId = null;
@@ -433,13 +445,6 @@
       btn.addEventListener("click", openCreate);
     });
     document.getElementById("ap-show-create-form")?.addEventListener("click", openCreate);
-
-    root.querySelectorAll("[data-filter]").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        listFilter = btn.dataset.filter || "all";
-        await render(contentRoot);
-      });
-    });
 
     root.querySelectorAll("[data-category]").forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -462,14 +467,17 @@
     root.querySelectorAll("[data-action='toggle-product']").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
+        const product = products.find((p) => p.id === id);
+        if (!product) return;
         const publish = btn.dataset.published !== "true";
         btn.disabled = true;
         try {
-          await (await ensureProductsApi()).setProductPublished(id, publish);
+          await applyProductVisibility(product, publish);
           App.showToast(publish ? "公開しました" : "非公開にしました");
           await render(contentRoot);
         } catch (error) {
           App.showToast(error.message, "error");
+          btn.disabled = false;
         }
       });
     });
@@ -488,21 +496,6 @@
       });
     });
 
-    root.querySelectorAll("[data-action='hide-static']").forEach((btn) => {
-      btn.addEventListener("click", async () => {
-        const product = products.find((p) => p.id === btn.dataset.id);
-        if (!product || !window.confirm("デモサービスをサイトから非表示にしますか？")) return;
-        try {
-          await (await ensureProductsApi()).createProduct(
-            staticProductToInput(product, { isPublished: false })
-          );
-          App.showToast("非公開にしました");
-          await render(contentRoot);
-        } catch (error) {
-          App.showToast(error.message, "error");
-        }
-      });
-    });
   }
 
   async function ensureProductsApi() {
