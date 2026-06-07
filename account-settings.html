@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>アカウント設定 | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/account.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content account-page">
+    <div class="container page-inner page-inner--medium">
+      <header class="account-header">
+        <h1>アカウント設定</h1>
+        <p>アカウント情報の確認や退会手続きを行えます。</p>
+      </header>
+
+      <div class="account-card">
+        <ul class="account-menu-list">
+          <li class="account-menu-item">
+            <a href="my-reviews.html" class="account-menu-link">
+              投稿した口コミ
+              <span class="account-menu-caret" aria-hidden="true">→</span>
+            </a>
+          </li>
+          <li class="account-menu-item">
+            <a href="account-withdraw.html" class="account-menu-link account-menu-link--danger">
+              アカウントを退会する
+              <span class="account-menu-caret" aria-hidden="true">→</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      await App.whenReady();
+
+      if (!Auth.isLoggedIn()) {
+        window.location.href = "login.html?redirect=account-settings.html";
+        return;
+      }
+
+      App.renderBreadcrumb([
+        { label: "トップ", path: "index.html" },
+        { label: "アカウント設定" },
+      ]);
+    });
+  </script>
+</body>
+</html>

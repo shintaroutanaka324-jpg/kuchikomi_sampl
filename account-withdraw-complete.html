@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>退会完了 | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/account.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content account-page">
+    <div class="container page-inner page-inner--medium">
+      <div class="account-card withdraw-complete-card">
+        <h1>退会が完了しました</h1>
+        <p>
+          カウマエをご利用いただきありがとうございました。<br />
+          また必要になった際は、いつでも新規登録してご利用ください。
+        </p>
+        <a href="index.html" class="btn btn-trust">トップページへ戻る</a>
+      </div>
+    </div>
+  </main>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", async () => {
+      await App.whenReady();
+      App.renderBreadcrumb([
+        { label: "トップ", path: "index.html" },
+        { label: "退会完了" },
+      ]);
+    });
+  </script>
+</body>
+</html>

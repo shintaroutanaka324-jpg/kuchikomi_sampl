@@ -108,7 +108,9 @@
       .order("created_at", { ascending: false });
 
     if (error) throw new Error(error.message);
-    return (data || []).map(rowToProduct);
+    const products = (data || []).map(rowToProduct);
+    if (typeof setDbProducts === "function") setDbProducts(products);
+    return products;
   }
 
   async function createProduct(input) {

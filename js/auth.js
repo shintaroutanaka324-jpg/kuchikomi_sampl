@@ -281,9 +281,35 @@
     return data;
   }
 
+  const WITHDRAWN_ACCOUNT_MESSAGE =
+    "このアカウントは退会済みです。再度利用する場合は新規登録を行ってください。";
+
+  async function isWithdrawnEmail(email) {
+    const normalized = email.trim();
+    if (!normalized || !client) return false;
+
+    const { data, error } = await client.rpc("is_withdrawn_email", {
+      check_email: normalized,
+    });
+    if (error) {
+      console.warn("[カウマエ] 退会メール確認エラー", error.message);
+      return false;
+    }
+    return data === true;
+  }
+
   async function signIn({ email, password }) {
     const supabase = ensureClient();
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    const trimmedEmail = email.trim();
+
+    if (await isWithdrawnEmail(trimmedEmail)) {
+      throw new Error(WITHDRAWN_ACCOUNT_MESSAGE);
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: trimmedEmail,
+      password,
+    });
     if (error) throw new Error(mapAuthError(error));
 
     session = data.session;
@@ -392,5 +418,7 @@
     getSiteBaseUrl,
     getAuthPageUrl,
     DUPLICATE_EMAIL_MESSAGE,
+    WITHDRAWN_ACCOUNT_MESSAGE,
+    isWithdrawnEmail,
   };
 })();

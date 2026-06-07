@@ -1,6 +1,5 @@
 (function () {
   const EMPTY_FORM = {
-    id: "",
     title: "",
     instructor: "",
     category: "other",
@@ -16,7 +15,10 @@
     isPublished: true,
   };
 
+  let viewMode = "list";
+  let listFilter = "all";
   let editingId = null;
+  let editingIsStatic = false;
 
   const FORM_EXAMPLE = {
     title: "山本のWebマーケティング実践講座",
@@ -55,6 +57,49 @@
       (c) =>
         `<option value="${c.value}" ${c.value === selected ? "selected" : ""}>${App.escapeHtml(c.label)}</option>`
     ).join("");
+  }
+
+  function productToForm(product) {
+    return {
+      title: product.title || "",
+      instructor: product.instructor || "",
+      category: product.category || "other",
+      price: product.price ?? "",
+      platform: product.platform || "",
+      imageUrl: product.imageUrl || "",
+      description: product.description || "",
+      highlightPro: product.highlightPro || "",
+      highlightCon: product.highlightCon || "",
+      officialUrl: product.officialUrl || "",
+      supportPeriod: product.supportPeriod || "3〜6ヶ月",
+      refundPolicy: product.refundPolicy || "なし",
+      isPublished: product.isPublished !== false,
+    };
+  }
+
+  function staticProductToInput(product, overrides = {}) {
+    return {
+      id: product.id,
+      title: product.title,
+      instructor: product.instructor,
+      category: product.category,
+      price: product.price,
+      platform: product.platform,
+      imageUrl: product.imageUrl,
+      description: product.description,
+      highlightPro: product.highlightPro,
+      highlightCon: product.highlightCon,
+      officialUrl: product.officialUrl,
+      supportPeriod: product.supportPeriod,
+      refundPolicy: product.refundPolicy,
+      companyName: product.companyName,
+      location: product.location,
+      averageRating: product.averageRating,
+      reviewCount: product.reviewCount,
+      proofRate: product.proofRate,
+      isPublished: product.isPublished !== false,
+      ...overrides,
+    };
   }
 
   function renderExamplesPanel() {
@@ -104,7 +149,11 @@
     const isEdit = Boolean(editingId);
     return `
       <section class="admin-product-form-wrap">
-        <h2 class="admin-section-title">${isEdit ? "サービスを編集" : "新しいサービスを追加"}</h2>
+        <div class="admin-product-form-head">
+          <button type="button" class="btn btn-ghost btn-sm" id="ap-back-to-list">← 一覧に戻る</button>
+          <h2 class="admin-section-title">${isEdit ? "サービスを編集" : "新しいサービスを追加"}</h2>
+          ${editingIsStatic ? '<p class="admin-product-hint">デモ用の静的データを編集しています。保存するとデータベースに登録されます。</p>' : ""}
+        </div>
         <div class="admin-product-form-layout">
         <form id="admin-product-form" class="admin-product-form" novalidate>
           <div class="admin-product-grid">
@@ -179,7 +228,7 @@
           </label>
           <div class="admin-actions">
             <button type="submit" class="btn btn-trust">${isEdit ? "変更を保存" : "サービスを追加"}</button>
-            ${isEdit ? '<button type="button" class="btn btn-outline" id="ap-cancel-edit">編集をやめる</button>' : ""}
+            <button type="button" class="btn btn-outline" id="ap-cancel-edit">キャンセル</button>
           </div>
         </form>
         ${renderExamplesPanel()}
@@ -187,14 +236,92 @@
       </section>`;
   }
 
+  function isProductPublished(product) {
+    if (product.source === "static") return true;
+    return product.isPublished !== false;
+  }
+
+  function filterProducts(products) {
+    if (listFilter === "published") {
+      return products.filter((p) => isProductPublished(p));
+    }
+    if (listFilter === "hidden") {
+      return products.filter((p) => !isProductPublished(p));
+    }
+    return products;
+  }
+
+  function renderProductList(products) {
+    const filtered = filterProducts(products);
+    const dbCount = products.filter((p) => p.source === "db").length;
+    const staticCount = products.filter((p) => p.source === "static").length;
+
+    const listHtml = filtered.length
+      ? filtered
+          .map((p) => {
+            const published = isProductPublished(p);
+            const sourceBadge =
+              p.source === "static"
+                ? '<span class="admin-product-source admin-product-source--static">デモデータ</span>'
+                : '<span class="admin-product-source admin-product-source--db">DB</span>';
+            const statusBadge = published
+              ? '<span class="admin-status admin-status--approved">公開中</span>'
+              : '<span class="admin-status admin-status--rejected">非公開</span>';
+
+            const actions =
+              p.source === "db"
+                ? `
+                <button type="button" class="btn btn-outline btn-sm" data-action="edit-product" data-id="${App.escapeHtml(p.id)}" data-static="0">編集</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="toggle-product" data-id="${App.escapeHtml(p.id)}" data-published="${published}">
+                  ${published ? "非公開にする" : "公開する"}
+                </button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="delete-product" data-id="${App.escapeHtml(p.id)}">削除</button>`
+                : `
+                <button type="button" class="btn btn-outline btn-sm" data-action="edit-product" data-id="${App.escapeHtml(p.id)}" data-static="1">編集</button>
+                <button type="button" class="btn btn-outline btn-sm" data-action="hide-static" data-id="${App.escapeHtml(p.id)}">サイトから非表示</button>`;
+
+            return `
+            <article class="admin-product-item ${published ? "" : "admin-product-item--hidden"}" data-product-id="${App.escapeHtml(p.id)}">
+              <div class="admin-product-item-thumb">
+                <img src="${App.escapeHtml(p.imageUrl || ProductsApi?.DEFAULT_IMAGE || "")}" alt="" loading="lazy" />
+              </div>
+              <div class="admin-product-item-main">
+                <div class="admin-product-item-badges">${sourceBadge}${statusBadge}</div>
+                <h3>${App.escapeHtml(p.title)}</h3>
+                <p class="admin-card-meta">${App.escapeHtml(p.instructor)} ／ ${App.escapeHtml(getCategoryLabel(p.category))} ／ ${formatPrice(p.price)}</p>
+                <p class="admin-card-meta">ID: <code>${App.escapeHtml(p.id)}</code></p>
+              </div>
+              <div class="admin-product-item-actions">
+                <a href="review-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline btn-sm" target="_blank" rel="noopener">プレビュー</a>
+                ${actions}
+              </div>
+            </article>`;
+          })
+          .join("")
+      : `<p class="admin-product-hint">該当するサービスがありません。</p>`;
+
+    return `
+      <section class="admin-product-list-wrap">
+        <div class="admin-product-list-head">
+          <div>
+            <h2 class="admin-section-title">サービス一覧（${products.length}件）</h2>
+            <p class="admin-product-hint">DB登録 ${dbCount}件 ／ デモデータ ${staticCount}件</p>
+          </div>
+          <button type="button" class="btn btn-trust" id="ap-show-create-form">＋ 新規サービスを追加</button>
+        </div>
+        <div class="admin-product-filters" role="tablist">
+          <button type="button" class="admin-product-filter ${listFilter === "all" ? "active" : ""}" data-filter="all">すべて</button>
+          <button type="button" class="admin-product-filter ${listFilter === "published" ? "active" : ""}" data-filter="published">公開中</button>
+          <button type="button" class="admin-product-filter ${listFilter === "hidden" ? "active" : ""}" data-filter="hidden">非公開</button>
+        </div>
+        <div class="admin-product-list">${listHtml}</div>
+      </section>`;
+  }
+
   function fillExampleField(targetId, value) {
     const el = document.getElementById(targetId);
     if (!el) return;
-    if (el.tagName === "SELECT") {
-      el.value = value;
-    } else {
-      el.value = value;
-    }
+    el.value = value;
     el.focus();
     el.dispatchEvent(new Event("input", { bubbles: true }));
   }
@@ -217,49 +344,6 @@
         App.showToast("入力しました");
       });
     });
-  }
-
-  function renderProductList(products) {
-    const dbProducts = products.filter((p) => p.isDbProduct);
-    const staticCount = getAllProducts().filter((p) => !p.isDbProduct).length;
-
-    if (!dbProducts.length) {
-      return `
-        <section class="admin-product-list-wrap">
-          <h2 class="admin-section-title">登録済みサービス（DB）</h2>
-          <p class="admin-product-hint">まだ管理者画面から追加したサービスはありません。上のフォームから追加できます。</p>
-          <p class="admin-product-hint">※ デモ用の静的サービスが ${staticCount} 件あります（data.js）。</p>
-        </section>`;
-    }
-
-    return `
-      <section class="admin-product-list-wrap">
-        <h2 class="admin-section-title">登録済みサービス（${dbProducts.length}件）</h2>
-        <div class="admin-product-list">
-          ${dbProducts
-            .map(
-              (p) => `
-            <article class="admin-product-item ${p.isPublished === false ? "admin-product-item--hidden" : ""}" data-product-id="${App.escapeHtml(p.id)}">
-              <div class="admin-product-item-main">
-                <h3>${App.escapeHtml(p.title)}</h3>
-                <p class="admin-card-meta">${App.escapeHtml(p.instructor)} ／ ${App.escapeHtml(getCategoryLabel(p.category))} ／ ${formatPrice(p.price)}</p>
-                <p class="admin-card-meta">ID: <code>${App.escapeHtml(p.id)}</code>
-                  ${p.isPublished === false ? '<span class="admin-status admin-status--rejected">非公開</span>' : ""}
-                </p>
-              </div>
-              <div class="admin-product-item-actions">
-                <a href="review-detail.html?id=${encodeURIComponent(p.id)}" class="btn btn-outline btn-sm" target="_blank" rel="noopener">ページを見る</a>
-                <button type="button" class="btn btn-outline btn-sm" data-action="edit-product" data-id="${App.escapeHtml(p.id)}">編集</button>
-                <button type="button" class="btn btn-outline btn-sm" data-action="toggle-product" data-id="${App.escapeHtml(p.id)}" data-published="${p.isPublished !== false}">
-                  ${p.isPublished !== false ? "非公開にする" : "公開する"}
-                </button>
-                <button type="button" class="btn btn-outline btn-sm" data-action="delete-product" data-id="${App.escapeHtml(p.id)}">削除</button>
-              </div>
-            </article>`
-            )
-            .join("")}
-        </div>
-      </section>`;
   }
 
   function collectFormData() {
@@ -304,14 +388,30 @@
       }
 
       try {
-        if (editingId) {
-          await (await ensureProductsApi()).updateProduct(editingId, data);
+        const api = await ensureProductsApi();
+        if (editingId && !editingIsStatic) {
+          await api.updateProduct(editingId, data);
           App.showToast("サービスを更新しました");
-          editingId = null;
         } else {
-          await (await ensureProductsApi()).createProduct(data);
-          App.showToast("サービスを追加しました");
+          const payload = editingId && editingIsStatic ? { ...data, id: editingId } : data;
+          if (editingIsStatic) {
+            const original = products.find((p) => p.id === editingId);
+            if (original) {
+              Object.assign(payload, {
+                companyName: original.companyName,
+                location: original.location,
+                averageRating: original.averageRating,
+                reviewCount: original.reviewCount,
+                proofRate: original.proofRate,
+              });
+            }
+          }
+          await api.createProduct(payload);
+          App.showToast(editingIsStatic ? "サービスをDBに登録しました" : "サービスを追加しました");
         }
+        editingId = null;
+        editingIsStatic = false;
+        viewMode = "list";
         await render(root);
       } catch (error) {
         App.showToast(error.message, "error");
@@ -322,21 +422,43 @@
       }
     });
 
-    document.getElementById("ap-cancel-edit")?.addEventListener("click", async () => {
+    const backToList = async () => {
       editingId = null;
+      editingIsStatic = false;
+      viewMode = "list";
+      await render(root);
+    };
+
+    document.getElementById("ap-cancel-edit")?.addEventListener("click", backToList);
+    document.getElementById("ap-back-to-list")?.addEventListener("click", backToList);
+    bindExamplePanel();
+  }
+
+  function bindListEvents(root, products) {
+    document.getElementById("ap-show-create-form")?.addEventListener("click", async () => {
+      editingId = null;
+      editingIsStatic = false;
+      viewMode = "form";
       await render(root);
     });
 
-    bindExamplePanel();
+    root.querySelectorAll(".admin-product-filter").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        listFilter = btn.dataset.filter || "all";
+        await render(root);
+      });
+    });
 
     root.querySelectorAll("[data-action='edit-product']").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
+        const isStatic = btn.dataset.static === "1";
         const product = products.find((p) => p.id === id);
         if (!product) return;
         editingId = id;
+        editingIsStatic = isStatic;
+        viewMode = "form";
         await render(root, product);
-        document.querySelector(".admin-product-form-wrap")?.scrollIntoView({ behavior: "smooth" });
       });
     });
 
@@ -359,14 +481,48 @@
     root.querySelectorAll("[data-action='delete-product']").forEach((btn) => {
       btn.addEventListener("click", async () => {
         const id = btn.dataset.id;
-        if (!window.confirm("このサービスを完全に削除しますか？口コミの紐づけは残りますが、詳細ページは表示されなくなります。")) {
+        if (
+          !window.confirm(
+            "このサービスを完全に削除しますか？口コミの紐づけは残りますが、詳細ページは表示されなくなります。"
+          )
+        ) {
           return;
         }
         btn.disabled = true;
         try {
           await (await ensureProductsApi()).deleteProduct(id);
-          if (editingId === id) editingId = null;
+          if (editingId === id) {
+            editingId = null;
+            editingIsStatic = false;
+            viewMode = "list";
+          }
           App.showToast("サービスを削除しました");
+          await render(root);
+        } catch (error) {
+          App.showToast(error.message, "error");
+          btn.disabled = false;
+        }
+      });
+    });
+
+    root.querySelectorAll("[data-action='hide-static']").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        const product = products.find((p) => p.id === id);
+        if (!product || product.source !== "static") return;
+        if (
+          !window.confirm(
+            "このデモサービスをサイトから非表示にしますか？（data.js のデータは残り、DBに非公開レコードが作成されます）"
+          )
+        ) {
+          return;
+        }
+        btn.disabled = true;
+        try {
+          await (await ensureProductsApi()).createProduct(
+            staticProductToInput(product, { isPublished: false })
+          );
+          App.showToast("サービスを非公開にしました");
           await render(root);
         } catch (error) {
           App.showToast(error.message, "error");
@@ -379,50 +535,71 @@
   async function ensureProductsApi() {
     await App.whenReady();
     if (window.ProductsApi) return window.ProductsApi;
-    throw new Error(
-      "サービス管理の読み込みに失敗しました。ページを再読み込みしてください。"
-    );
+    throw new Error("サービス管理の読み込みに失敗しました。ページを再読み込みしてください。");
   }
 
-  async function render(root, editForm = null) {
+  async function fetchAdminProducts() {
+    const api = await ensureProductsApi();
+    let dbError = null;
+
+    try {
+      await api.loadAllProductsAdmin();
+    } catch (err) {
+      dbError = err;
+      if (typeof setDbProducts === "function") setDbProducts([]);
+    }
+
+    try {
+      await api.loadPublishedProducts();
+    } catch (_) {
+      /* 公開一覧の同期失敗は一覧表示を妨げない */
+    }
+
+    const all =
+      typeof getAllProducts === "function"
+        ? getAllProducts()
+        : typeof PRODUCTS !== "undefined"
+          ? PRODUCTS
+          : [];
+
+    const products = all.map((p) => ({
+      ...p,
+      source: p.isDbProduct ? "db" : "static",
+    }));
+
+    return { products, dbError };
+  }
+
+  async function render(root, editProduct = null) {
     root.innerHTML = `<p class="admin-empty">読み込み中...</p>`;
     try {
-      const api = await ensureProductsApi();
-      const products = await api.loadAllProductsAdmin();
-      const formData = editForm
-        ? {
-            title: editForm.title,
-            instructor: editForm.instructor,
-            category: editForm.category,
-            price: editForm.price,
-            platform: editForm.platform || "",
-            imageUrl: editForm.imageUrl || "",
-            description: editForm.description || "",
-            highlightPro: editForm.highlightPro || "",
-            highlightCon: editForm.highlightCon || "",
-            officialUrl: editForm.officialUrl || "",
-            supportPeriod: editForm.supportPeriod || "3〜6ヶ月",
-            refundPolicy: editForm.refundPolicy || "なし",
-            isPublished: editForm.isPublished !== false,
-          }
-        : EMPTY_FORM;
+      const { products, dbError } = await fetchAdminProducts();
 
-      root.innerHTML = `
-        <p class="admin-product-intro">コードを編集せず、ここから新しいサービスの枠を追加できます。追加後は「サービスを探す」一覧と詳細ページに表示されます。</p>
-        ${renderForm(formData)}
-        ${renderProductList(products)}`;
-
-      bindFormEvents(root, products);
-    } catch (err) {
-      if (err.message?.includes("products") || err.message?.includes("relation")) {
+      if (viewMode === "form") {
+        const formData = editProduct ? productToForm(editProduct) : EMPTY_FORM;
         root.innerHTML = `
-          <div class="admin-denied">
-            <h1>データベースの準備が必要です</h1>
-            <p>Supabase SQL Editor で <code>supabase/schema-products.sql</code> を実行してください。</p>
-            <p class="admin-card-meta">${App.escapeHtml(err.message)}</p>
-          </div>`;
+          <p class="admin-product-intro">サービスの追加・編集を行います。保存すると「サービスを探す」一覧と詳細ページに反映されます。</p>
+          ${renderForm(formData)}`;
+        bindFormEvents(root, products);
         return;
       }
+
+      let dbWarning = "";
+      if (dbError) {
+        const isMissingTable =
+          dbError.message?.includes("products") || dbError.message?.includes("relation");
+        dbWarning = isMissingTable
+          ? `<div class="admin-product-db-warning">DBのサービステーブルが未設定です。追加・編集・削除には <code>supabase/schema-products.sql</code> の実行が必要です。いまはデモデータの一覧のみ表示しています。</div>`
+          : `<div class="admin-product-db-warning">${App.escapeHtml(dbError.message)}</div>`;
+      }
+
+      root.innerHTML = `
+        <p class="admin-product-intro">登録済みのサービスを一覧で確認し、編集・公開設定・削除ができます。デモ用データ（data.js）も表示されます。</p>
+        ${dbWarning}
+        ${renderProductList(products)}`;
+
+      bindListEvents(root, products);
+    } catch (err) {
       root.innerHTML = `<div class="admin-empty">${App.escapeHtml(err.message)}</div>`;
     }
   }

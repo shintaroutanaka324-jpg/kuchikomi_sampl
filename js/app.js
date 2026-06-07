@@ -216,18 +216,22 @@
 
   function renderAccountMenuLinks() {
     let html = `<a href="my-reviews.html">投稿した口コミ</a>`;
+    html += `<a href="account-settings.html">アカウント設定</a>`;
     if (window.Auth?.isAdmin?.()) {
       html += `<a href="admin.html">口コミ審査（運営）</a>`;
       html += `<a href="admin-services.html">サービス管理（運営）</a>`;
+      html += `<a href="admin-withdrawals.html">退会ユーザー管理（運営）</a>`;
     }
     return html;
   }
 
   function renderMobileAccountLinks() {
     let html = `<a href="my-reviews.html" class="mobile-account-link">投稿した口コミ</a>`;
+    html += `<a href="account-settings.html" class="mobile-account-link">アカウント設定</a>`;
     if (window.Auth?.isAdmin?.()) {
       html += `<a href="admin.html" class="mobile-account-link">口コミ審査（運営）</a>`;
       html += `<a href="admin-services.html" class="mobile-account-link">サービス管理（運営）</a>`;
+      html += `<a href="admin-withdrawals.html" class="mobile-account-link">退会ユーザー管理（運営）</a>`;
     }
     return html;
   }

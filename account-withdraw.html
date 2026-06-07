@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>アカウントを退会する | カウマエ</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/account.css" />
+</head>
+<body>
+  <div id="site-header"></div>
+  <div id="breadcrumb"></div>
+
+  <main class="page-content account-page">
+    <div class="container page-inner page-inner--medium">
+      <div id="withdraw-root"></div>
+    </div>
+  </main>
+
+  <div id="withdraw-modal" class="withdraw-modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="withdraw-modal-title" hidden>
+    <div class="withdraw-modal">
+      <h2 id="withdraw-modal-title">本当に退会しますか？</h2>
+      <p>この操作は取り消せません。</p>
+      <div class="withdraw-modal-actions">
+        <button type="button" class="btn btn-outline" id="withdraw-modal-cancel">キャンセル</button>
+        <button type="button" class="btn btn-danger" id="withdraw-modal-confirm">退会する</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="site-footer"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/account-api.js"></script>
+  <script src="js/account-withdraw.js"></script>
+</body>
+</html>

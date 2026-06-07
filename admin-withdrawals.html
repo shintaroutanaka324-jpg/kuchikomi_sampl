@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>投稿した口コミ | カウマエ</title>
+  <title>退会ユーザー管理（運営） | カウマエ</title>
   <link rel="stylesheet" href="css/styles.css" />
   <link rel="stylesheet" href="css/admin.css" />
+  <link rel="stylesheet" href="css/account.css" />
 </head>
-<body>
+<body class="page-admin">
   <div id="site-header"></div>
   <div id="breadcrumb"></div>
 
   <main class="page-content admin-page">
     <div class="container page-inner page-inner--medium">
       <header class="admin-header">
-        <h1>投稿した口コミ</h1>
-        <p>審査状況を確認できます。承認後にサイトへ公開されます。<a href="account-settings.html">アカウント設定</a>から退会手続きも行えます。</p>
+        <h1>退会ユーザー管理</h1>
+        <p>退会したユーザーの記録と監査ログを確認できます。</p>
       </header>
-      <div id="my-reviews-root"></div>
+
+      <div id="admin-withdrawals-root"></div>
     </div>
   </main>
 
@@ -25,6 +27,7 @@
 
   <script src="js/data.js"></script>
   <script src="js/app.js"></script>
-  <script src="js/my-reviews.js"></script>
+  <script src="js/account-api.js"></script>
+  <script src="js/admin-withdrawals.js"></script>
 </body>
 </html>
