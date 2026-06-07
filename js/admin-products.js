@@ -299,7 +299,7 @@
             <button type="button" class="adm-quick-btn is-primary" id="ap-show-create-form">＋ 新規サービス登録</button>
             <button type="button" class="adm-quick-btn" disabled title="準備中">カテゴリ追加</button>
             <button type="button" class="adm-quick-btn" disabled title="準備中">タグ追加</button>
-            <a href="admin.html" class="adm-quick-btn">口コミ確認</a>
+            <a href="admin-reviews.html" class="adm-quick-btn">口コミ管理へ</a>
           </div>
         </div>
       </div>`;

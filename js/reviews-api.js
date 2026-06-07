@@ -92,18 +92,27 @@
     const client = getClient();
     if (!client) return [];
 
-    const { data, error } = await client
+    let result = await client
       .from("submitted_reviews")
       .select("*")
       .eq("status", "approved")
+      .eq("is_published", true)
       .order("published_at", { ascending: false });
 
-    if (error) {
-      console.warn("[カウマエ] 公開口コミの取得エラー", error.message);
+    if (result.error && isMissingPublishedColumnError(result.error)) {
+      result = await client
+        .from("submitted_reviews")
+        .select("*")
+        .eq("status", "approved")
+        .order("published_at", { ascending: false });
+    }
+
+    if (result.error) {
+      console.warn("[カウマエ] 公開口コミの取得エラー", result.error.message);
       return approvedCache;
     }
 
-    applyApprovedCache(data || []);
+    applyApprovedCache((result.data || []).filter(isReviewPublished));
     return approvedCache;
   }
 
@@ -441,6 +450,57 @@
     return payload;
   }
 
+  function isReviewPublished(row) {
+    return row?.is_published !== false;
+  }
+
+  function isMissingWasEditedColumnError(error) {
+    const msg = error?.message || "";
+    return msg.includes("was_edited_by_admin") && msg.includes("schema cache");
+  }
+
+  function isMissingPublishedColumnError(error) {
+    const msg = error?.message || "";
+    return msg.includes("is_published") && msg.includes("schema cache");
+  }
+
+  function withoutWasEditedColumn(payload) {
+    const next = { ...payload };
+    delete next.was_edited_by_admin;
+    return next;
+  }
+
+  async function updateSubmittedReview(id, payload) {
+    let result = await getClient()
+      .from("submitted_reviews")
+      .update(payload)
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (result.error && isMissingWasEditedColumnError(result.error)) {
+      result = await getClient()
+        .from("submitted_reviews")
+        .update(withoutWasEditedColumn(payload))
+        .eq("id", id)
+        .select("*")
+        .single();
+    }
+
+    if (result.error && isMissingPublishedColumnError(result.error)) {
+      const fallback = { ...payload };
+      delete fallback.is_published;
+      result = await getClient()
+        .from("submitted_reviews")
+        .update(fallback)
+        .eq("id", id)
+        .select("*")
+        .single();
+    }
+
+    return result;
+  }
+
   async function approveReview(id, { productId, adminNote, content, wasEdited, productName } = {}) {
     ensureConfigured();
     if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
@@ -451,6 +511,7 @@
 
     const payload = {
       status: "approved",
+      is_published: true,
       reviewed_by: window.Auth.getUser().id,
       reviewed_at: new Date().toISOString(),
       published_at: new Date().toISOString(),
@@ -466,14 +527,15 @@
 
     applyAdminContentToPayload(payload, content);
 
-    const { data, error } = await getClient()
-      .from("submitted_reviews")
-      .update(payload)
-      .eq("id", id)
-      .select("*")
-      .single();
+    const { data, error } = await updateSubmittedReview(id, payload);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      throw new Error(
+        isMissingWasEditedColumnError(error)
+          ? "口コミ公開に必要なDB列がありません。Supabase SQL Editor で supabase/schema-reviews-admin-edit.sql を実行してください。"
+          : error.message
+      );
+    }
     await loadApprovedReviews();
     return data;
   }
@@ -486,11 +548,21 @@
       validateAdminReviewContent(content);
     }
 
-    const { data: existing, error: fetchErr } = await getClient()
+    let existing;
+    let fetchErr;
+    ({ data: existing, error: fetchErr } = await getClient()
       .from("submitted_reviews")
       .select("id, status, was_edited_by_admin")
       .eq("id", id)
-      .maybeSingle();
+      .maybeSingle());
+
+    if (fetchErr && isMissingWasEditedColumnError(fetchErr)) {
+      ({ data: existing, error: fetchErr } = await getClient()
+        .from("submitted_reviews")
+        .select("id, status")
+        .eq("id", id)
+        .maybeSingle());
+    }
 
     if (fetchErr) throw new Error(fetchErr.message);
     if (!existing) throw new Error("口コミが見つかりません");
@@ -511,14 +583,15 @@
 
     applyAdminContentToPayload(payload, content);
 
-    const { data, error } = await getClient()
-      .from("submitted_reviews")
-      .update(payload)
-      .eq("id", id)
-      .select("*")
-      .single();
+    const { data, error } = await updateSubmittedReview(id, payload);
 
-    if (error) throw new Error(error.message);
+    if (error) {
+      throw new Error(
+        isMissingWasEditedColumnError(error)
+          ? "口コミ更新に必要なDB列がありません。Supabase SQL Editor で supabase/schema-reviews-admin-edit.sql を実行してください。"
+          : error.message
+      );
+    }
     await loadApprovedReviews();
     return data;
   }
@@ -577,11 +650,52 @@
     return true;
   }
 
-  function statusLabel(status) {
+  async function setReviewPublished(id, isPublished) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const { data: row, error: fetchErr } = await getClient()
+      .from("submitted_reviews")
+      .select("id, status")
+      .eq("id", id)
+      .maybeSingle();
+
+    if (fetchErr) throw new Error(fetchErr.message);
+    if (!row) throw new Error("口コミが見つかりません");
+    if (row.status !== "approved") {
+      throw new Error("公開済みの口コミのみ非表示・再表示できます");
+    }
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .update({
+        is_published: Boolean(isPublished),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(
+        isMissingPublishedColumnError(error)
+          ? "非表示機能に必要なDB列がありません。Supabase SQL Editor で supabase/schema-reviews-hidden.sql を実行してください。"
+          : error.message
+      );
+    }
+
+    await loadApprovedReviews();
+    return data;
+  }
+
+  function statusLabel(status, row) {
+    if (row?.status === "approved" && row.is_published === false) {
+      return "非表示";
+    }
     const map = {
       pending: "審査中",
       approved: "公開済み",
-      rejected: "非公開",
+      rejected: "却下",
     };
     return map[status] || status;
   }
@@ -603,6 +717,8 @@
     updateReviewAdmin,
     rejectReview,
     deleteApprovedReview,
+    setReviewPublished,
+    isReviewPublished,
     statusLabel,
     rowToLegacyReview,
     getApprovedCache: () => approvedCache,

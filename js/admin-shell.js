@@ -2,9 +2,9 @@
   const NAV = [
     { id: "dashboard", label: "ダッシュボード", href: "admin-dashboard.html", icon: "grid" },
     { id: "services", label: "サービス管理", href: "admin-services.html", icon: "box" },
-    { id: "reviews", label: "口コミ管理", href: "admin.html", icon: "message" },
+    { id: "reviews", label: "口コミ管理", href: "admin-reviews.html", icon: "message" },
     { id: "users", label: "ユーザー管理", href: "admin-users.html", soon: true },
-    { id: "proofs", label: "購入証明管理", href: "admin.html?tab=pending", icon: "shield" },
+    { id: "proofs", label: "購入証明管理", href: "admin-reviews.html?tab=pending", icon: "shield" },
     { id: "categories", label: "カテゴリ管理", href: "admin-services.html#categories", soon: true },
     { id: "reports", label: "レポート", href: "admin-dashboard.html#reports", soon: true },
     { id: "settings", label: "設定", href: "account-settings.html", soon: true },
@@ -38,10 +38,10 @@
 
     return `
       <aside class="adm-sidebar" id="adm-sidebar">
-        <div class="adm-sidebar-brand">
-          <img src="images/logo.png" alt="" width="32" height="32" />
+        <a href="index.html" class="adm-sidebar-brand" title="カウマエ トップページへ戻る">
+          <img src="images/logo.png" alt="カウマエ" width="32" height="32" />
           <span>カウマエ</span>
-        </div>
+        </a>
         <nav class="adm-nav" aria-label="運営メニュー">${links}</nav>
         <div class="adm-sidebar-foot">運営管理コンソール</div>
       </aside>`;
@@ -56,7 +56,7 @@
           <input type="search" id="adm-global-search" placeholder="${App.escapeHtml(searchPlaceholder)}" autocomplete="off" />
         </div>
         <div class="adm-topbar-actions">
-          <a href="admin.html?tab=pending" class="adm-icon-btn adm-icon-btn--notify" id="adm-notify-btn" title="審査待ちの口コミ" aria-label="審査待ち通知">
+          <a href="admin-reviews.html?tab=pending" class="adm-icon-btn adm-icon-btn--notify" id="adm-notify-btn" title="審査待ちの口コミ" aria-label="審査待ち通知">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
           </a>
           <div class="adm-user-chip">

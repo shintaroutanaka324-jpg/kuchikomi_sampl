@@ -1,5 +1,6 @@
 function renderMyReviewCard(row) {
-  const statusClass = `admin-status--${row.status}`;
+  const isHidden = row.status === "approved" && row.is_published === false;
+  const statusClass = isHidden ? "admin-status--rejected" : `admin-status--${row.status}`;
   return `
     <article class="admin-card">
       <div class="admin-card-head">
@@ -7,7 +8,7 @@ function renderMyReviewCard(row) {
           <h2 class="admin-card-title">${App.escapeHtml(row.product_name)}</h2>
           <p class="admin-card-meta">投稿日: ${formatDateJa(row.created_at.split("T")[0])}</p>
         </div>
-        <span class="admin-status ${statusClass}">${ReviewsApi.statusLabel(row.status)}</span>
+        <span class="admin-status ${statusClass}">${ReviewsApi.statusLabel(row.status, row)}</span>
       </div>
       ${
         row.status === "pending"
@@ -15,7 +16,12 @@ function renderMyReviewCard(row) {
           : ""
       }
       ${
-        row.status === "approved" && row.product_id
+        isHidden
+          ? `<p style="font-size:0.875rem;color:var(--gray-600);line-height:1.7">運営の判断により、現在サイトでは非表示になっています。</p>`
+          : ""
+      }
+      ${
+        row.status === "approved" && !isHidden && row.product_id
           ? `<p style="margin-top:0.75rem"><a href="review-detail.html?id=${App.escapeHtml(row.product_id)}" class="btn btn-outline btn-sm">サービスページで見る</a></p>`
           : ""
       }

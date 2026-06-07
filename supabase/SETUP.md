@@ -75,7 +75,9 @@ SQL Editor で `supabase/schema-email-check.sql` を実行してください。
 
 1. SQL Editor で `supabase/schema-reviews.sql` を実行
 2. 続けて `supabase/schema-reviews-fields.sql` も実行（口コミ項目の追加）
-3. **Storage** → `purchase-proofs` バケットが作成されていることを確認
+3. 続けて `supabase/schema-reviews-admin-edit.sql` も実行（運営による口コミ修正の記録。**公開・編集で必須**）
+4. 続けて `supabase/schema-reviews-hidden.sql` も実行（口コミの非表示機能。**運営がサイトから隠す場合に必須**）
+5. **Storage** → `purchase-proofs` バケットが作成されていることを確認
 
 ### 運営者アカウントの設定
 
@@ -87,7 +89,7 @@ set is_admin = true
 where email = 'あなたの運営用メール@example.com';
 ```
 
-運営者でログイン後、ヘッダーメニューから **口コミ審査（運営）** → `/admin.html` にアクセスできます。
+運営者でログイン後、ヘッダーメニューから **口コミ審査（運営）** → `/admin-reviews.html`（運営ダッシュボード内）にアクセスできます。
 
 ## 7. Stripe 課金（月額880円）
 
