@@ -1676,6 +1676,7 @@ main {
 .review-feed--primary {
   grid-template-columns: 1fr;
   gap: 1rem;
+  align-items: stretch;
 }
 
 @media (min-width: 768px) {
@@ -1745,6 +1746,12 @@ main {
   border-width: 1px;
   border-left: 4px solid var(--trust-600);
   background: #fff;
+  height: 100%;
+  min-height: 18.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  overflow: hidden;
 }
 
 .review-feed-db-badge {
@@ -1792,7 +1799,10 @@ main {
   font-weight: 700;
   color: var(--blue-700);
   line-height: 1.45;
-  display: block;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
   margin: 0.5rem 0 0.25rem;
 }
 
@@ -1806,23 +1816,55 @@ main {
   margin-bottom: 0.5rem;
 }
 
+.review-feed-card--primary .review-feed-instructor {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 0.35rem;
+}
+
 .review-feed-title--lg {
-  font-size: 1rem;
+  font-size: 0.9375rem;
   font-weight: 700;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.45;
+  color: var(--gray-900);
 }
 
 .review-feed-body--lg {
-  font-size: 0.875rem;
-  line-height: 1.7;
-  -webkit-line-clamp: 5;
-  color: var(--gray-700);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--gray-600);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  flex: 1;
+  min-height: 0;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.review-feed-card--primary .review-feed-footer {
+  margin-top: auto;
+  padding-top: 0.65rem;
 }
 
 .review-feed-link {
   font-size: 0.8125rem;
   font-weight: 600;
   color: var(--trust-600);
+  white-space: nowrap;
+}
+
+.review-feed-link:hover {
+  text-decoration: underline;
 }
 
 .trust-badges-row--lg {

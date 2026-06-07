@@ -22,6 +22,7 @@
 window.SUPABASE_CONFIG = {
   url: "https://xxxxxxxx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  siteBasePath: "/kaumae/",
 };
 ```
 
@@ -43,23 +44,25 @@ Dashboard → **Authentication** → **URL Configuration**
 **Site URL**（末尾スラッシュ付き・`/index` は付けない）:
 
 ```
-https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/
+https://shintaroutanaka324-jpg.github.io/kaumae/
 ```
 
 **Redirect URLs** に以下をすべて追加:
 
 ```
-https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/**
-https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/auth-callback.html
-https://shintaroutanaka324-jpg.github.io/kuchikomi_sampl/reset-password.html
+https://shintaroutanaka324-jpg.github.io/kaumae/**
+https://shintaroutanaka324-jpg.github.io/kaumae/auth-callback.html
+https://shintaroutanaka324-jpg.github.io/kaumae/reset-password.html
 ```
 
 ローカル開発時は例:
 
 ```
 http://localhost:5500/**
-http://localhost:5500/kuchikomi_sampl/**
+http://localhost:5500/kaumae/**
 ```
+
+> 旧リポジトリ名（`kuchikomi_sampl` など）の Redirect URL は Supabase から削除して構いません。
 
 メール確認リンクは `auth-callback.html` に戻り、そこでログイン状態になります。
 

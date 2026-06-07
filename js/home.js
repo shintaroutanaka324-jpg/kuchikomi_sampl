@@ -95,6 +95,13 @@ function renderCategories() {
   ).join("");
 }
 
+function excerptText(text, maxLen = 100) {
+  const chars = [...String(text || "").trim()];
+  if (!chars.length) return "";
+  if (chars.length <= maxLen) return chars.join("");
+  return `${chars.slice(0, maxLen).join("")}…`;
+}
+
 function resolveReviewLinks(r, productMap) {
   const product = r.productId ? productMap[r.productId] : null;
   const serviceName = product?.title || r.productName || "（サービス名非公開）";
@@ -120,9 +127,10 @@ function renderReviewCardHtml(r, productMap) {
   const noBadgeNote = hasAnyTrustBadge(r)
     ? ""
     : `<p class="review-no-badge">購入記録未提出の口コミ</p>`;
-  const dbBadge = r._fromDb
-    ? `<span class="review-feed-db-badge">新着</span>`
-    : "";
+  const dbBadge = r._fromDb ? `<span class="review-feed-db-badge">新着</span>` : "";
+  const title = excerptText(r.title, 48);
+  const body = excerptText(r.content, 100);
+  const showReadMore = [...String(r.content || "")].length > 100 || [...String(r.title || "")].length > 48;
 
   return `
       <article class="review-feed-card review-feed-card--primary">
@@ -138,11 +146,11 @@ function renderReviewCardHtml(r, productMap) {
         ${noBadgeNote}
         <a href="${detailUrl}" class="review-feed-service-name review-feed-service-name--lg">${App.escapeHtml(serviceName)}</a>
         ${instructor ? `<p class="review-feed-instructor">講師・発信者：${App.escapeHtml(instructor)} · ${App.escapeHtml(category)}</p>` : `<p class="review-feed-instructor">${App.escapeHtml(category)}</p>`}
-        <h3 class="review-feed-title review-feed-title--lg">${App.escapeHtml(r.title)}</h3>
-        <p class="review-feed-body review-feed-body--lg">${App.escapeHtml(r.content)}</p>
+        <h3 class="review-feed-title review-feed-title--lg">${App.escapeHtml(title)}</h3>
+        <p class="review-feed-body review-feed-body--lg">${App.escapeHtml(body)}</p>
         <footer class="review-feed-footer">
           <span class="review-feed-user">${App.escapeHtml(r.userName)}（${r.age}）</span>
-          <a href="${detailUrl}" class="review-feed-link">続きを読む →</a>
+          <a href="${detailUrl}" class="review-feed-link">${showReadMore ? "続きを読む →" : "詳細を見る →"}</a>
         </footer>
       </article>`;
 }
