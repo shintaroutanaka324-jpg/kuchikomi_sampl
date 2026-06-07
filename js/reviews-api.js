@@ -52,7 +52,9 @@
       purchasePrice: row.purchase_price,
       pros: [row.body_pros],
       cons: [row.body_concerns],
-      learned: row.body_learnings,
+      learned: row.body_results || row.body_learnings,
+      situation: row.body_situation,
+      numericResult: row.body_numeric,
       recommendFor: row.body_recommend,
       bodyOther: row.body_other,
       contentSatisfaction: Number(row.content_satisfaction),
@@ -162,9 +164,18 @@
     const bodyIdMap = {
       bodyPros: "body_pros",
       bodyConcerns: "body_concerns",
-      bodyLearnings: "body_learnings",
+      bodySituation: "body_situation",
+      bodyResults: "body_results",
       bodyRecommend: "body_recommend",
+      bodyNumeric: "body_numeric",
       bodyOther: "body_other",
+    };
+    const bodyMinLengths = {
+      body_pros: 100,
+      body_concerns: 50,
+      body_situation: 50,
+      body_results: 100,
+      body_recommend: 50,
     };
     const bodies = {};
     formData.bodies.forEach((b) => {
@@ -172,10 +183,13 @@
       if (col) bodies[col] = b.text;
     });
 
-    const requiredBodies = ["body_pros", "body_concerns", "body_learnings", "body_recommend"];
-    for (const key of requiredBodies) {
-      if (!bodies[key]?.trim()) {
+    for (const [key, minLen] of Object.entries(bodyMinLengths)) {
+      const text = bodies[key]?.trim() || "";
+      if (!text) {
         throw new Error("口コミ本文の必須項目が不足しています");
+      }
+      if ([...text].length < minLen) {
+        throw new Error(`必須項目は${minLen}文字以上で入力してください`);
       }
     }
 
@@ -194,9 +208,12 @@
       result_realization: ratings.result_realization,
       body_pros: bodies.body_pros,
       body_concerns: bodies.body_concerns,
-      body_learnings: bodies.body_learnings,
+      body_situation: bodies.body_situation,
+      body_results: bodies.body_results,
+      body_learnings: bodies.body_results,
       body_recommend: bodies.body_recommend,
-      body_other: bodies.body_other || null,
+      body_numeric: bodies.body_numeric?.trim() || null,
+      body_other: bodies.body_other?.trim() || null,
       reviewer_display_name: reviewerName,
     };
 

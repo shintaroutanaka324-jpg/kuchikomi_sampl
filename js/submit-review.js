@@ -1,5 +1,3 @@
-const MIN_TEXT_LENGTH = 100;
-
 const RATING_SCALE = [
   { stars: 5, label: "とても良い" },
   { stars: 4, label: "良い" },
@@ -20,34 +18,71 @@ const BODY_ITEMS = [
   {
     id: "bodyPros",
     label: "良かった点・満足した点",
+    minChars: 100,
+    required: true,
     placeholder: "サービスで良かった点や満足した点を、具体的なエピソードを交えて書いてください",
+    hint: "最低100文字以上で具体的に書いてください",
     icon: "smile",
   },
   {
     id: "bodyConcerns",
     label: "気になった点",
+    minChars: 50,
+    required: true,
     placeholder: "気になった点や改善してほしい点を、具体的に書いてください",
+    hint: "最低50文字以上で具体的に書いてください",
     icon: "alert",
   },
   {
-    id: "bodyLearnings",
-    label: "学んだこと、得られた成果",
-    placeholder: "学んだことや得られた成果・変化を、具体的に書いてください",
-    icon: "learn",
+    id: "bodySituation",
+    label: "購入前の状況・悩み",
+    minChars: 50,
+    required: true,
+    placeholder: "購入前に抱えていた悩みや課題、期待していたことを書いてください",
+    hint: "最低50文字以上で具体的に書いてください",
+    icon: "situation",
+  },
+  {
+    id: "bodyResults",
+    label: "得られた成果・変化",
+    minChars: 100,
+    required: true,
+    placeholder: "利用後に得られた成果や変化を、できるだけ具体的に書いてください",
+    hint: "最低100文字以上で具体的に書いてください",
+    icon: "results",
   },
   {
     id: "bodyRecommend",
-    label: "どんな人にお勧めしたいか",
-    placeholder: "どんな方にお勧めできるか、理由と合わせて具体的に書いてください",
+    label: "どんな人におすすめしたいか",
+    minChars: 50,
+    required: true,
+    placeholder: "どんな方におすすめできるか、理由と合わせて具体的に書いてください",
+    hint: "最低50文字以上で具体的に書いてください",
     icon: "users",
+  },
+  {
+    id: "bodyNumeric",
+    label: "数値で表せる成果",
+    minChars: 0,
+    required: false,
+    placeholder: "例：作業時間が月15時間から3時間に減った、年収が400万円から500万円になった、など",
+    hint: "売上、年収、学習時間、作業時間、成約数など、数値で表せる成果があれば入力してください（任意）",
+    icon: "numeric",
+    rows: 3,
   },
   {
     id: "bodyOther",
     label: "その他",
-    placeholder: "上記以外で伝えたいことがあれば、具体的に書いてください",
+    minChars: 0,
+    required: false,
+    placeholder: "上記以外で伝えたいことがあれば書いてください",
+    hint: "任意項目です",
     icon: "note",
+    rows: 4,
   },
 ];
+
+const REQUIRED_BODY_ITEMS = BODY_ITEMS.filter((item) => item.required);
 
 const ITEM_ICONS = {
   coin: '<path d="M12 4v16M8 8a4 4 0 1 0 8 0 4 4 0 0 0-8 0z"/>',
@@ -69,7 +104,21 @@ const ITEM_ICONS = {
     '<path d="M16 19v-1a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v1"/><circle cx="9" cy="7" r="3"/><path d="M22 19v-1a4 4 0 0 0-3-3.87"/><path d="M16 3.13a3 3 0 0 1 0 5.74"/>',
   note:
     '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M10 13h4M10 17h4"/>',
+  situation:
+    '<circle cx="12" cy="12" r="9"/><path d="M12 7v5"/><circle cx="12" cy="16.5" r=".5" fill="currentColor"/>',
+  results:
+    '<path d="M4 19h16"/><path d="M6 17l4-8 3 5 5-9 4 6"/>',
+  numeric:
+    '<path d="M4 19h16"/><path d="M7 15l3-6 2 4 3-5 3 7"/>',
 };
+
+function getBodyItem(id) {
+  return BODY_ITEMS.find((item) => item.id === id);
+}
+
+function getMinCharsForItem(item) {
+  return item?.minChars ?? 0;
+}
 
 const MONTH_OPTIONS = [
   { value: "1", label: "1月" },
@@ -90,9 +139,9 @@ function countChars(value) {
   return [...String(value || "")].length;
 }
 
-function isLowQualityText(text) {
+function isLowQualityText(text, minChars = 50) {
   const trimmed = String(text || "").trim();
-  if (trimmed.length < MIN_TEXT_LENGTH) return false;
+  if (trimmed.length < minChars) return false;
 
   const compact = trimmed.replace(/\s+/g, "");
   if (!compact) return true;
@@ -114,7 +163,7 @@ function isLowQualityText(text) {
     }
   }
 
-  if (/^[ぁ-んァ-ヶーa-zA-Z0-9.。、！？!?\s]{0,20}$/.test(compact) && chars.length >= MIN_TEXT_LENGTH) {
+  if (/^[ぁ-んァ-ヶーa-zA-Z0-9.。、！？!?\s]{0,20}$/.test(compact) && chars.length >= minChars) {
     const onlyFew = /^(.)\1+$/.test(compact) || /^(..)\1+$/.test(compact);
     if (onlyFew) return true;
   }
@@ -130,10 +179,14 @@ function isLowQualityText(text) {
   return false;
 }
 
-function renderCharCount(id) {
+function renderCharCount(item) {
+  if (!item.required) {
+    return `<p class="sr-char-count sr-char-count--optional" id="${item.id}-count" aria-live="polite">0文字（任意）</p>`;
+  }
+  const min = item.minChars;
   return `
-    <p class="sr-char-count is-invalid" id="${id}-count" aria-live="polite">0 / ${MIN_TEXT_LENGTH}文字（あと${MIN_TEXT_LENGTH}文字）</p>
-    <p class="sr-quality-error hidden" id="${id}-quality" role="alert">内容が適切ではありません。具体的な体験を記載してください。</p>`;
+    <p class="sr-char-count is-invalid" id="${item.id}-count" aria-live="polite">0 / ${min}文字（あと${min}文字）</p>
+    <p class="sr-quality-error hidden" id="${item.id}-quality" role="alert">内容が適切ではありません。具体的な体験を記載してください。</p>`;
 }
 
 function renderPurchasePeriodFields() {
@@ -218,24 +271,44 @@ function renderRatingRows() {
 }
 
 function renderBodyRows() {
-  return BODY_ITEMS.map(
-    (item, index) => `
-    <div class="sr-body-item${index < BODY_ITEMS.length - 1 ? " sr-body-item--border" : ""}">
+  const requiredHtml = REQUIRED_BODY_ITEMS.map(
+    (item, index) => renderBodyItem(item, index < REQUIRED_BODY_ITEMS.length - 1)
+  ).join("");
+
+  const optionalItems = BODY_ITEMS.filter((item) => !item.required);
+  const optionalHtml = optionalItems.length
+    ? `
+      <div class="sr-body-optional-head">
+        <h3 class="sr-body-optional-title">任意項目</h3>
+        <p class="form-hint">入力しなくても投稿できます</p>
+      </div>
+      ${optionalItems.map((item, index) => renderBodyItem(item, index < optionalItems.length - 1)).join("")}`
+    : "";
+
+  return requiredHtml + optionalHtml;
+}
+
+function renderBodyItem(item, showBorder) {
+  const min = getMinCharsForItem(item);
+  return `
+    <div class="sr-body-item${showBorder ? " sr-body-item--border" : ""}${item.required ? "" : " sr-body-item--optional"}">
       <div class="sr-body-item-head">
         ${renderItemIcon(item)}
         <label class="form-label" for="${item.id}">
-          ${item.label} <span class="sr-required">*</span>
+          ${item.label}
+          ${item.required ? '<span class="sr-required">*</span>' : '<span class="sr-optional">任意</span>'}
         </label>
       </div>
       <div class="sr-body-item-content">
-        <textarea class="form-textarea sr-textarea" id="${item.id}" rows="5" required
-          data-min-chars="${MIN_TEXT_LENGTH}"
+        <textarea class="form-textarea sr-textarea" id="${item.id}" rows="${item.rows || 5}"
+          ${item.required ? "required" : ""}
+          data-min-chars="${min}"
+          data-required="${item.required ? "true" : "false"}"
           placeholder="${App.escapeHtml(item.placeholder)}"></textarea>
-        <p class="form-hint">最低100文字以上で具体的に書いてください</p>
-        ${renderCharCount(item.id)}
+        <p class="form-hint">${App.escapeHtml(item.hint)}</p>
+        ${renderCharCount(item)}
       </div>
-    </div>`
-  ).join("");
+    </div>`;
 }
 
 function renderRatingScale() {
@@ -257,7 +330,7 @@ function renderSidebar() {
           <li>実際に購入・受講した商品・サービスのみ投稿できます</li>
           <li>口コミを1件投稿すると、<strong>1か月間</strong>すべての口コミを閲覧できます</li>
           <li>購入証明の提出は任意です（提出で「購入証明済み」バッジ）</li>
-          <li>各項目の口コミ本文は<strong>100文字以上</strong>で入力してください</li>
+          <li>口コミ本文は項目ごとに<strong>最低文字数</strong>が異なります（50〜100文字）</li>
         </ul>
         <a href="submit-guidelines.html" class="sr-side-guide-link">口コミ投稿ガイドラインを見る →</a>
       </div>
@@ -341,6 +414,7 @@ function renderConfirmScreen(data) {
         <div class="sr-confirm-block">
           <h3>口コミ本文</h3>
           ${data.bodies
+            .filter((b) => b.text)
             .map(
               (b) => `
             <div class="sr-confirm-body-item">
@@ -571,19 +645,28 @@ function initStarRatings() {
 }
 
 function updateTextareaState(textarea) {
+  const item = getBodyItem(textarea.id);
+  const minChars = Number(textarea.dataset.minChars || 0);
+  const required = textarea.dataset.required === "true";
   const countEl = document.getElementById(`${textarea.id}-count`);
   const qualityEl = document.getElementById(`${textarea.id}-quality`);
   const len = countChars(textarea.value);
-  const remaining = Math.max(0, MIN_TEXT_LENGTH - len);
-  const lowQuality = len >= MIN_TEXT_LENGTH && isLowQualityText(textarea.value);
+  const remaining = Math.max(0, minChars - len);
+  const lowQuality =
+    required && len >= minChars && isLowQualityText(textarea.value, minChars);
 
   if (countEl) {
-    countEl.textContent =
-      remaining > 0
-        ? `${len} / ${MIN_TEXT_LENGTH}文字（あと${remaining}文字）`
-        : `${len} / ${MIN_TEXT_LENGTH}文字`;
-    countEl.classList.toggle("is-valid", len >= MIN_TEXT_LENGTH && !lowQuality);
-    countEl.classList.toggle("is-invalid", len < MIN_TEXT_LENGTH || lowQuality);
+    if (!required) {
+      countEl.textContent = len > 0 ? `${len}文字（任意）` : "0文字（任意）";
+      countEl.classList.remove("is-valid", "is-invalid");
+    } else {
+      countEl.textContent =
+        remaining > 0
+          ? `${len} / ${minChars}文字（あと${remaining}文字）`
+          : `${len} / ${minChars}文字`;
+      countEl.classList.toggle("is-valid", len >= minChars && !lowQuality);
+      countEl.classList.toggle("is-invalid", len < minChars || lowQuality);
+    }
   }
 
   if (qualityEl) {
@@ -591,6 +674,7 @@ function updateTextareaState(textarea) {
   }
 
   textarea.classList.toggle("sr-textarea--invalid", lowQuality);
+  void item;
 }
 
 function initCharCounters() {
@@ -604,9 +688,10 @@ function initCharCounters() {
 }
 
 function getQualityInvalidFields() {
-  return BODY_ITEMS.filter((item) => {
+  return REQUIRED_BODY_ITEMS.filter((item) => {
     const text = document.getElementById(item.id)?.value || "";
-    return countChars(text) >= MIN_TEXT_LENGTH && isLowQualityText(text);
+    const minChars = getMinCharsForItem(item);
+    return countChars(text) >= minChars && isLowQualityText(text, minChars);
   });
 }
 
@@ -621,9 +706,10 @@ function validateForm(showToast = false) {
   const missingRatings = RATING_ITEMS.filter(
     (item) => !Number(document.getElementById(item.key)?.value || 0)
   );
-  const shortComments = BODY_ITEMS.filter(
-    (item) => countChars(document.getElementById(item.id)?.value || "") < MIN_TEXT_LENGTH
-  );
+  const shortComments = REQUIRED_BODY_ITEMS.filter((item) => {
+    const minChars = getMinCharsForItem(item);
+    return countChars(document.getElementById(item.id)?.value || "") < minChars;
+  });
   const badQuality = getQualityInvalidFields();
 
   const isValid =
@@ -648,8 +734,11 @@ function validateForm(showToast = false) {
       return false;
     }
     if (shortComments.length) {
-      const names = shortComments.map((item) => item.label).join("、");
-      App.showToast(`${names}は${MIN_TEXT_LENGTH}文字以上入力してください`, "error");
+      const first = shortComments[0];
+      App.showToast(
+        `${first.label}は${getMinCharsForItem(first)}文字以上入力してください`,
+        "error"
+      );
       return false;
     }
     if (badQuality.length) {

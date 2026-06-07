@@ -56,10 +56,13 @@ function renderReviewCard(row, { showActions = false } = {}) {
       <div class="admin-text-block">${App.escapeHtml(row.body_pros)}</div>
       <h3 class="admin-section-title">気になった点</h3>
       <div class="admin-text-block">${App.escapeHtml(row.body_concerns)}</div>
-      <h3 class="admin-section-title">学んだこと</h3>
-      <div class="admin-text-block">${App.escapeHtml(row.body_learnings)}</div>
+      <h3 class="admin-section-title">購入前の状況・悩み</h3>
+      <div class="admin-text-block">${App.escapeHtml(row.body_situation || "（未入力）")}</div>
+      <h3 class="admin-section-title">得られた成果・変化</h3>
+      <div class="admin-text-block">${App.escapeHtml(row.body_results || row.body_learnings || "（未入力）")}</div>
       <h3 class="admin-section-title">おすすめしたい人</h3>
       <div class="admin-text-block">${App.escapeHtml(row.body_recommend)}</div>
+      ${row.body_numeric ? `<h3 class="admin-section-title">数値で表せる成果</h3><div class="admin-text-block">${App.escapeHtml(row.body_numeric)}</div>` : ""}
       ${row.body_other ? `<h3 class="admin-section-title">その他</h3><div class="admin-text-block">${App.escapeHtml(row.body_other)}</div>` : ""}
 
       ${

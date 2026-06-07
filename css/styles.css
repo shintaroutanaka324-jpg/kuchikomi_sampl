@@ -7077,6 +7077,34 @@ main {
   color: #dc2626;
 }
 
+.sr-optional {
+  margin-left: 0.35rem;
+  font-size: 0.72em;
+  font-weight: 600;
+  color: var(--gray-500);
+}
+
+.sr-body-optional-head {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px dashed var(--gray-200);
+}
+
+.sr-body-optional-title {
+  font-size: 0.9375rem;
+  font-weight: 700;
+  color: var(--gray-800);
+  margin-bottom: 0.25rem;
+}
+
+.sr-body-item--optional .form-hint {
+  color: var(--gray-500);
+}
+
+.sr-char-count--optional {
+  color: var(--gray-500);
+}
+
 .sr-stars {
   display: inline-flex;
   gap: 0.2rem;

@@ -71,7 +71,8 @@ SQL Editor で `supabase/schema-email-check.sql` を実行してください。
 ## 6. 口コミ投稿・審査のセットアップ
 
 1. SQL Editor で `supabase/schema-reviews.sql` を実行
-2. **Storage** → `purchase-proofs` バケットが作成されていることを確認
+2. 続けて `supabase/schema-reviews-fields.sql` も実行（口コミ項目の追加）
+3. **Storage** → `purchase-proofs` バケットが作成されていることを確認
 
 ### 運営者アカウントの設定
 
