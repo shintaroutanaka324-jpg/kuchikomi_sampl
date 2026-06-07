@@ -335,8 +335,6 @@ const REVIEWS = [
     rating: 4.5,
     date: "2026-05-20",
     verifiedPurchase: true,
-    identityVerified: true,
-    enrollmentVerified: true,
     title: "本当に収益化できました！",
     content:
       "最初は半信半疑でしたが、この教材の通りに実践したところ、6ヶ月で収益化を達成できました。特に動画のサムネイル制作とSEO対策の部分が非常に参考になりました。価格は高いですが、それ以上の価値がありました。",
@@ -357,8 +355,6 @@ const REVIEWS = [
     rating: 3.5,
     date: "2026-04-15",
     verifiedPurchase: false,
-    identityVerified: false,
-    enrollmentVerified: false,
     title: "内容は良いが価格が...",
     content:
       "コンテンツ自体は良質で、YouTubeの収益化に必要な知識は一通り学べます。ただ、正直なところネットで調べればある程度わかる内容も含まれており、この価格は少し高すぎると感じました。",
@@ -379,8 +375,6 @@ const REVIEWS = [
     rating: 5,
     date: "2026-05-10",
     verifiedPurchase: true,
-    identityVerified: true,
-    enrollmentVerified: true,
     title: "人生が変わりました",
     content:
       "佐藤さんのコーチングを受けて、自分の可能性を信じられるようになりました。3ヶ月のプログラムで、転職も成功し、年収も200万円アップ。高額ですが、投資した以上のリターンがありました。",
@@ -401,8 +395,6 @@ const REVIEWS = [
     rating: 4.5,
     date: "2026-05-01",
     verifiedPurchase: true,
-    identityVerified: true,
-    enrollmentVerified: false,
     title: "コスパ最高の恋愛教材",
     content:
       "他の恋愛コンサルは10万円以上するのに、この価格でこの内容量は本当にすごい。ジュンさんの実体験に基づいたアドバイスなので説得力があります。",
@@ -423,8 +415,6 @@ const REVIEWS = [
     rating: 2.5,
     date: "2026-05-18",
     verifiedPurchase: true,
-    identityVerified: true,
-    enrollmentVerified: true,
     title: "期待外れだった",
     content:
       "SNSの煽りに乗って購入しましたが、内容は一般的な恋愛テクニックの寄せ集め。同じ情報はYouTubeでも無料で得られます。購入前に口コミを見ていれば防げた失敗でした。",
@@ -445,8 +435,6 @@ const REVIEWS = [
     rating: 4,
     date: "2026-05-22",
     verifiedPurchase: true,
-    identityVerified: false,
-    enrollmentVerified: true,
     title: "初心者には分かりやすい投資講座",
     content:
       "鈴木先生の説明は丁寧で、投資初心者の私でも理解できました。ただし高額なので、余裕資金がある方向け。購入前に口コミを読んで安心して申し込めました。",
@@ -574,43 +562,20 @@ function renderStars(rating, max = 5) {
 const TRUST_BADGE_ICONS = {
   purchase:
     '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="m9 15 2 2 4-4"/></svg>',
-  identity:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
-  enrollment:
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>',
 };
 
-/**
- * 購入記録などを提出した口コミにのみバッジを表示（認証必須ではない）
- */
+/** 購入証明を提出した口コミにのみバッジを表示 */
 function renderReviewTrustBadges(review, options = {}) {
+  if (!review.verifiedPurchase) return "";
+
   const large = options.large === true;
   const cls = large ? "trust-badge trust-badge--lg" : "trust-badge";
-  const badges = [];
-
-  if (review.verifiedPurchase) {
-    badges.push(
-      `<span class="${cls} trust-badge--purchase" title="購入記録を提出済み">${TRUST_BADGE_ICONS.purchase}購入証明済み</span>`
-    );
-  }
-  if (review.identityVerified) {
-    badges.push(
-      `<span class="${cls} trust-badge--identity" title="本人確認書類を提出済み">${TRUST_BADGE_ICONS.identity}本人確認済み</span>`
-    );
-  }
-  if (review.enrollmentVerified) {
-    badges.push(
-      `<span class="${cls} trust-badge--enrollment" title="受講記録を提出済み">${TRUST_BADGE_ICONS.enrollment}受講確認済み</span>`
-    );
-  }
-
-  if (!badges.length) return "";
   const rowClass = large ? "trust-badges-row trust-badges-row--lg" : "trust-badges-row";
-  return `<div class="${rowClass}">${badges.join("")}</div>`;
+  return `<div class="${rowClass}"><span class="${cls} trust-badge--purchase" title="購入証明を提出済み">${TRUST_BADGE_ICONS.purchase}購入証明済み</span></div>`;
 }
 
 function hasAnyTrustBadge(review) {
-  return !!(review.verifiedPurchase || review.identityVerified || review.enrollmentVerified);
+  return Boolean(review.verifiedPurchase);
 }
 
 function getCategoryShortLabel(value) {

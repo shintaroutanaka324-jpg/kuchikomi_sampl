@@ -54,8 +54,6 @@
       rating,
       date: dateSource.split("T")[0],
       verifiedPurchase: Boolean(row.purchase_proof_path),
-      identityVerified: false,
-      enrollmentVerified: false,
       title: row.body_pros.slice(0, 40) + (row.body_pros.length > 40 ? "…" : ""),
       content: row.body_pros,
       purchasePrice: row.purchase_price,

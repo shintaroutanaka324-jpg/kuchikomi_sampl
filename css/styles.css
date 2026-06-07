@@ -2168,18 +2168,6 @@ main {
   border-color: #93c5fd;
 }
 
-.trust-badge-lg.trust-badge--identity {
-  color: #047857;
-  background: #d1fae5;
-  border-color: #6ee7b7;
-}
-
-.trust-badge-lg.trust-badge--enrollment {
-  color: #9a3412;
-  background: #ffedd5;
-  border-color: #fdba74;
-}
-
 .trust-strip-points {
   max-width: 36rem;
   margin: 0.85rem auto 0;
@@ -2436,18 +2424,6 @@ main {
   color: #1e40af;
   background: #dbeafe;
   border: 1px solid #bfdbfe;
-}
-
-.trust-badge--identity {
-  color: #047857;
-  background: #d1fae5;
-  border: 1px solid #a7f3d0;
-}
-
-.trust-badge--enrollment {
-  color: #7c2d12;
-  background: #ffedd5;
-  border: 1px solid #fed7aa;
 }
 
 .review-feed-title {
