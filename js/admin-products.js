@@ -18,6 +18,37 @@
 
   let editingId = null;
 
+  const FORM_EXAMPLE = {
+    title: "山本のWebマーケティング実践講座",
+    instructor: "山本",
+    category: "web-marketing",
+    price: "49800",
+    platform: "オンライン講座",
+    imageUrl: "",
+    description:
+      "SNSやLPの基礎から集客の流れまで学べる、実践型のマーケティング講座です。購入前に口コミで雰囲気を確認できます。",
+    highlightPro: "初学者でも始めやすいカリキュラム",
+    highlightCon: "成果には継続的な実践が必要",
+    supportPeriod: "3〜6ヶ月",
+    refundPolicy: "なし",
+    officialUrl: "https://example.com/yamamoto-course",
+  };
+
+  const FORM_EXAMPLE_ITEMS = [
+    { id: "ap-title", label: "サービス名", key: "title" },
+    { id: "ap-instructor", label: "講師・発信者名", key: "instructor" },
+    { id: "ap-category", label: "カテゴリ", key: "category", format: (v) => getCategoryLabel(v) },
+    { id: "ap-price", label: "価格", key: "price", format: (v) => `${Number(v).toLocaleString("ja-JP")}円` },
+    { id: "ap-platform", label: "販売プラットフォーム", key: "platform" },
+    { id: "ap-image", label: "画像URL", key: "imageUrl", optional: true },
+    { id: "ap-description", label: "サービス説明", key: "description" },
+    { id: "ap-highlight-pro", label: "良い点", key: "highlightPro", optional: true },
+    { id: "ap-highlight-con", label: "気になる点", key: "highlightCon", optional: true },
+    { id: "ap-support", label: "サポート期間", key: "supportPeriod" },
+    { id: "ap-refund", label: "返金ポリシー", key: "refundPolicy" },
+    { id: "ap-official", label: "公式URL", key: "officialUrl", optional: true },
+  ];
+
   function categoryOptions(selected) {
     if (typeof CATEGORIES === "undefined") return "";
     return CATEGORIES.map(
@@ -26,11 +57,55 @@
     ).join("");
   }
 
+  function renderExamplesPanel() {
+    const rows = FORM_EXAMPLE_ITEMS.map((item) => {
+      const raw = FORM_EXAMPLE[item.key];
+      if (!raw && item.optional) {
+        return `
+          <div class="admin-example-item">
+            <dt>${App.escapeHtml(item.label)}</dt>
+            <dd class="admin-example-value admin-example-value--muted">（空欄でOK・デフォルト画像を使用）</dd>
+          </div>`;
+      }
+      const text = item.format ? item.format(raw) : raw;
+      return `
+        <div class="admin-example-item">
+          <dt>${App.escapeHtml(item.label)}</dt>
+          <dd>
+            <button type="button" class="admin-example-value" data-example-target="${item.id}" data-example-key="${item.key}" title="クリックで左のフォームに入力">
+              ${App.escapeHtml(text)}
+            </button>
+          </dd>
+        </div>`;
+    }).join("");
+
+    return `
+      <aside class="admin-product-examples" aria-label="入力例">
+        <div class="admin-product-examples-head">
+          <h3 class="admin-product-examples-title">入力例</h3>
+          <p class="admin-product-examples-lead">山本さんの講座を想定した記入サンプルです。</p>
+        </div>
+        <button type="button" class="btn btn-outline-trust btn-sm admin-product-examples-fill" id="ap-fill-example">
+          すべての例をフォームに入れる
+        </button>
+        <dl class="admin-example-list">${rows}</dl>
+        <div class="admin-product-examples-tips">
+          <p><strong>ヒント</strong></p>
+          <ul>
+            <li>各例をクリックすると、左の該当欄にコピーされます。</li>
+            <li>口コミ投稿時は<strong>サービス名を同じ表記</strong>にすると自動で紐づきます。</li>
+            <li>画像URLは空欄でも公開できます。</li>
+          </ul>
+        </div>
+      </aside>`;
+  }
+
   function renderForm(form = EMPTY_FORM) {
     const isEdit = Boolean(editingId);
     return `
       <section class="admin-product-form-wrap">
         <h2 class="admin-section-title">${isEdit ? "サービスを編集" : "新しいサービスを追加"}</h2>
+        <div class="admin-product-form-layout">
         <form id="admin-product-form" class="admin-product-form" novalidate>
           <div class="admin-product-grid">
             <div class="admin-field">
@@ -107,7 +182,41 @@
             ${isEdit ? '<button type="button" class="btn btn-outline" id="ap-cancel-edit">編集をやめる</button>' : ""}
           </div>
         </form>
+        ${renderExamplesPanel()}
+        </div>
       </section>`;
+  }
+
+  function fillExampleField(targetId, value) {
+    const el = document.getElementById(targetId);
+    if (!el) return;
+    if (el.tagName === "SELECT") {
+      el.value = value;
+    } else {
+      el.value = value;
+    }
+    el.focus();
+    el.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
+  function fillExampleForm() {
+    FORM_EXAMPLE_ITEMS.forEach((item) => {
+      const value = FORM_EXAMPLE[item.key];
+      if (value === "" && item.optional) return;
+      fillExampleField(item.id, value);
+    });
+    App.showToast("入力例をフォームに反映しました");
+  }
+
+  function bindExamplePanel() {
+    document.getElementById("ap-fill-example")?.addEventListener("click", fillExampleForm);
+    document.querySelectorAll("[data-example-key]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const value = FORM_EXAMPLE[btn.dataset.exampleKey] ?? "";
+        fillExampleField(btn.dataset.exampleTarget, value);
+        App.showToast("入力しました");
+      });
+    });
   }
 
   function renderProductList(products) {
@@ -217,6 +326,8 @@
       editingId = null;
       await render(root);
     });
+
+    bindExamplePanel();
 
     root.querySelectorAll("[data-action='edit-product']").forEach((btn) => {
       btn.addEventListener("click", async () => {
