@@ -116,6 +116,38 @@
     return approvedCache;
   }
 
+  function isMissingReadUnlockColumnError(error) {
+    const msg = error?.message || "";
+    return (
+      (msg.includes("read_unlock_status") || msg.includes("quality_flags")) &&
+      msg.includes("schema cache")
+    );
+  }
+
+  async function userHasReadUnlock() {
+    if (!window.Auth?.isLoggedIn?.()) return false;
+    if (window.Auth.isPaidMember?.()) return true;
+    if (window.Auth.hasPostedReview?.()) return true;
+
+    const client = getClient();
+    if (!client) return false;
+
+    const { count, error } = await client
+      .from("submitted_reviews")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", window.Auth.getUser().id)
+      .in("read_unlock_status", ["auto_approved", "admin_approved"]);
+
+    if (error && isMissingReadUnlockColumnError(error)) {
+      return userHasSubmissions();
+    }
+    if (error) {
+      console.warn("[カウマエ] 閲覧解除状態の確認エラー", error.message);
+      return false;
+    }
+    return (count || 0) > 0;
+  }
+
   async function canViewFullReview() {
     if (!window.Auth?.isLoggedIn?.()) return false;
     if (window.Auth.refreshProfile) {
@@ -125,13 +157,11 @@
       localStorage.setItem("reviewsUnlocked", "true");
       return true;
     }
-    if (window.Auth.hasPostedReview?.()) {
-      localStorage.setItem("reviewsUnlocked", "true");
-      return true;
-    }
-    const has = await userHasSubmissions();
+    const has = await userHasReadUnlock();
     if (has) {
       localStorage.setItem("reviewsUnlocked", "true");
+    } else {
+      localStorage.removeItem("reviewsUnlocked");
     }
     return has;
   }
@@ -145,8 +175,8 @@
     const isPaidMember = window.Auth?.isPaidMember?.() ?? false;
     let hasPostedReview = window.Auth?.hasPostedReview?.() ?? false;
 
-    if (loggedIn && !hasPostedReview) {
-      hasPostedReview = await userHasSubmissions();
+    if (loggedIn && !hasPostedReview && !isPaidMember) {
+      hasPostedReview = await userHasReadUnlock();
     }
 
     const canViewFull = loggedIn && (isPaidMember || hasPostedReview);
@@ -255,9 +285,17 @@
       }
     }
 
+    const quality = window.ReviewQuality?.evaluateReviewBodies?.(bodies) || {
+      pass: true,
+      reasons: [],
+    };
+    const readUnlockStatus = quality.pass ? "auto_approved" : "pending";
+
     const insertPayload = {
       user_id: user.id,
       status: "pending",
+      read_unlock_status: readUnlockStatus,
+      quality_flags: quality.reasons,
       product_id: productId,
       product_name: formData.productName,
       purchase_price: Number(formData.purchasePrice),
@@ -281,13 +319,27 @@
       reviewer_display_name: reviewerName,
     };
 
-    const { data: created, error } = await client
+    let created;
+    let insertError;
+    ({ data: created, error: insertError } = await client
       .from("submitted_reviews")
       .insert(insertPayload)
       .select("*")
-      .single();
+      .single());
 
-    if (error) throw new Error(`口コミの保存に失敗しました: ${error.message}`);
+    if (insertError && isMissingReadUnlockColumnError(insertError)) {
+      const fallbackPayload = { ...insertPayload };
+      delete fallbackPayload.read_unlock_status;
+      delete fallbackPayload.quality_flags;
+      ({ data: created, error: insertError } = await client
+        .from("submitted_reviews")
+        .insert(fallbackPayload)
+        .select("*")
+        .single());
+      quality.pass = true;
+    }
+
+    if (insertError) throw new Error(`口コミの保存に失敗しました: ${insertError.message}`);
 
     if (proofFile) {
       const proofPath = await uploadProof(proofFile, user.id, created.id);
@@ -300,11 +352,43 @@
       }
     }
 
-    localStorage.setItem("reviewsUnlocked", "true");
+    if (quality.pass) {
+      localStorage.setItem("reviewsUnlocked", "true");
+    } else {
+      localStorage.removeItem("reviewsUnlocked");
+    }
     if (window.Auth?.refreshProfile) {
       await window.Auth.refreshProfile();
     }
-    return created;
+    return {
+      review: created,
+      readUnlockApproved: quality.pass,
+      qualityReasons: quality.reasons,
+    };
+  }
+
+  async function approveReadUnlock(id) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .update({
+        read_unlock_status: "admin_approved",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id)
+      .select("*")
+      .single();
+
+    if (error) {
+      throw new Error(
+        isMissingReadUnlockColumnError(error)
+          ? "閲覧解除機能に必要なDB列がありません。Supabase SQL Editor で supabase/schema-reviews-read-unlock.sql を実行してください。"
+          : error.message
+      );
+    }
+    return data;
   }
 
   async function userHasSubmissions() {
@@ -371,6 +455,23 @@
       return 0;
     }
     return count || 0;
+  }
+
+  async function getReadUnlockPendingReviews() {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) throw new Error("運営者権限が必要です");
+
+    const { data, error } = await getClient()
+      .from("submitted_reviews")
+      .select("*")
+      .eq("read_unlock_status", "pending")
+      .order("created_at", { ascending: true });
+
+    if (error) {
+      if (isMissingReadUnlockColumnError(error)) return [];
+      throw new Error(error.message);
+    }
+    return data || [];
   }
 
   async function getReviewHistory(status) {
@@ -705,11 +806,14 @@
     loadApprovedReviews,
     submitReview,
     userHasSubmissions,
+    userHasReadUnlock,
+    approveReadUnlock,
     canViewFullReview,
     getReviewAccessState,
     getMyReviews,
     getPendingReviews,
     getPendingReviewCount,
+    getReadUnlockPendingReviews,
     getReviewHistory,
     getAllReviewsAdmin,
     getProofSignedUrl,

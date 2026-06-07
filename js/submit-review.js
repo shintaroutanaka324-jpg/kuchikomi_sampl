@@ -152,47 +152,11 @@ const MONTH_OPTIONS = [
 ];
 
 function countChars(value) {
-  return [...String(value || "")].length;
+  return window.ReviewQuality?.countChars?.(value) ?? [...String(value || "")].length;
 }
 
 function isLowQualityText(text, minChars = 50) {
-  const trimmed = String(text || "").trim();
-  if (trimmed.length < minChars) return false;
-
-  const compact = trimmed.replace(/\s+/g, "");
-  if (!compact) return true;
-
-  const chars = [...compact];
-  const freq = {};
-  for (const c of chars) freq[c] = (freq[c] || 0) + 1;
-  const maxFreq = Math.max(...Object.values(freq));
-  if (maxFreq / chars.length > 0.35) return true;
-
-  const unique = new Set(chars).size;
-  if (unique < 10) return true;
-  if (unique / chars.length < 0.1) return true;
-
-  for (let len = 1; len <= 6; len++) {
-    const unit = compact.slice(0, len);
-    if (unit && compact === unit.repeat(Math.ceil(compact.length / len)).slice(0, compact.length)) {
-      return true;
-    }
-  }
-
-  if (/^[ぁ-んァ-ヶーa-zA-Z0-9.。、！？!?\s]{0,20}$/.test(compact) && chars.length >= minChars) {
-    const onlyFew = /^(.)\1+$/.test(compact) || /^(..)\1+$/.test(compact);
-    if (onlyFew) return true;
-  }
-
-  const words = trimmed.split(/[\s　、。.\n]+/).filter((w) => w.length >= 2);
-  if (words.length >= 3) {
-    const wordFreq = {};
-    for (const w of words) wordFreq[w] = (wordFreq[w] || 0) + 1;
-    const maxWord = Math.max(...Object.values(wordFreq));
-    if (maxWord / words.length > 0.5 && words.length >= 5) return true;
-  }
-
-  return false;
+  return window.ReviewQuality?.isLowQualityText?.(text, minChars) ?? false;
 }
 
 function renderCharCount(item) {
@@ -504,9 +468,16 @@ async function submitReview() {
   try {
     const data = collectFormData();
     const proofFile = document.getElementById("purchaseProof")?.files?.[0] || null;
-    await ReviewsApi.submitReview(data, proofFile);
-    App.showToast("口コミを送信しました。運営確認後に公開されます。");
-    setTimeout(() => (window.location.href = "my-reviews.html"), 1200);
+    const result = await ReviewsApi.submitReview(data, proofFile);
+    if (result.readUnlockApproved) {
+      App.showToast("口コミを送信しました。内容を確認し、他の口コミ全文を閲覧できるようになりました。");
+    } else {
+      App.showToast(
+        "口コミを送信しました。内容を運営が確認後、全文閲覧が解除されます。公開は別途審査後です。",
+        "success"
+      );
+    }
+    setTimeout(() => (window.location.href = "my-reviews.html"), 1400);
   } catch (err) {
     App.showToast(err.message || "投稿に失敗しました", "error");
     if (submitBtn) {

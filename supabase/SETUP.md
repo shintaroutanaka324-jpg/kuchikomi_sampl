@@ -77,7 +77,8 @@ SQL Editor で `supabase/schema-email-check.sql` を実行してください。
 2. 続けて `supabase/schema-reviews-fields.sql` も実行（口コミ項目の追加）
 3. 続けて `supabase/schema-reviews-admin-edit.sql` も実行（運営による口コミ修正の記録。**公開・編集で必須**）
 4. 続けて `supabase/schema-reviews-hidden.sql` も実行（口コミの非表示機能。**運営がサイトから隠す場合に必須**）
-5. **Storage** → `purchase-proofs` バケットが作成されていることを確認
+5. 続けて `supabase/schema-reviews-read-unlock.sql` も実行（ルールベースの全文閲覧解除。**口コミ投稿時のモザイク解除に必須**）
+6. **Storage** → `purchase-proofs` バケットが作成されていることを確認
 
 ### 運営者アカウントの設定
 
@@ -109,10 +110,12 @@ where email = 'あなたの運営用メール@example.com';
 
 1. ログイン後 **口コミを投稿** から内容を送信
 2. `submitted_reviews` テーブルに `status = pending` で保存されること
-3. 購入証明を添付した場合、`purchase-proofs` ストレージにファイルが保存されること
-4. **投稿した口コミ** ページで「審査中」と表示されること
-5. 運営者が **口コミ審査** で「承認して公開」
-6. `status = approved` になり、紐づけたサービス詳細ページに口コミが表示されること
+3. 内容がルールベース品質チェックを通過した場合、`read_unlock_status = auto_approved` となり他口コミの全文閲覧が即時解除されること
+4. 品質チェックに引っかかった場合、`read_unlock_status = pending` のままモザイクが維持され、運営が **閲覧解除待ち** タブから承認できること
+5. 購入証明を添付した場合、`purchase-proofs` ストレージにファイルが保存されること
+6. **投稿した口コミ** ページで公開審査・閲覧解除の状態が表示されること
+7. 運営者が **口コミ審査** で「承認して公開」
+8. `status = approved` になり、紐づけたサービス詳細ページに口コミが表示されること
 
 ## 保存される情報
 

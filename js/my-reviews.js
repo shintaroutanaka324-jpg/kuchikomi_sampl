@@ -1,3 +1,17 @@
+function readUnlockUserMessage(row) {
+  const status = row.read_unlock_status;
+  if (!status || status === "auto_approved" || status === "admin_approved") {
+    return `<p style="font-size:0.875rem;color:#047857;line-height:1.7">他の口コミ全文を閲覧できます。</p>`;
+  }
+  if (status === "pending") {
+    return `<p style="font-size:0.875rem;color:var(--gray-600);line-height:1.7">全文閲覧は運営が内容を確認後に解除されます。公開審査とは別の手続きです。</p>`;
+  }
+  if (status === "denied") {
+    return `<p style="font-size:0.875rem;color:#b45309;line-height:1.7">全文閲覧の解除は承認されませんでした。</p>`;
+  }
+  return "";
+}
+
 function renderMyReviewCard(row) {
   const isHidden = row.status === "approved" && row.is_published === false;
   const statusClass = isHidden ? "admin-status--rejected" : `admin-status--${row.status}`;
@@ -10,6 +24,7 @@ function renderMyReviewCard(row) {
         </div>
         <span class="admin-status ${statusClass}">${ReviewsApi.statusLabel(row.status, row)}</span>
       </div>
+      ${readUnlockUserMessage(row)}
       ${
         row.status === "pending"
           ? `<p style="font-size:0.875rem;color:var(--gray-600);line-height:1.7">運営が内容を確認しています。承認後にサイトへ公開されます。</p>`

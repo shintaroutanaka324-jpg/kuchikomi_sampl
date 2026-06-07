@@ -277,6 +277,7 @@
     const statusChips = [
       { id: "all", label: "すべて" },
       { id: "pending", label: "審査待ち" },
+      { id: "read_unlock", label: "閲覧解除待ち" },
       { id: "approved", label: "公開済み" },
       { id: "hidden", label: "非表示" },
       { id: "rejected", label: "却下" },
@@ -327,7 +328,7 @@
               <td>${App.escapeHtml(row.reviewer_display_name)}</td>
               <td><span class="adm-cat-pill">${App.escapeHtml(categoryLabel)}</span></td>
               <td>${S.renderStars(rating)} <span style="color:#6b7280;font-size:0.75rem">${rating.toFixed(1)}</span></td>
-              <td>${statusPill(row)}</td>
+              <td>${statusPill(row)}${row.read_unlock_status === "pending" ? ` ${readUnlockPill(row)}` : ""}</td>
               <td>${proofIcon}</td>
               <td style="white-space:nowrap;color:#9ca3af;font-size:0.75rem">${dateStr}</td>
               <td>
@@ -390,13 +391,42 @@
       .join("");
   }
 
+  function readUnlockPill(row) {
+    if (row._isStatic || !row.read_unlock_status) return "";
+    const label =
+      window.ReviewQuality?.readUnlockLabel?.(row.read_unlock_status) || row.read_unlock_status;
+    const cls =
+      row.read_unlock_status === "pending"
+        ? "read-unlock-pending"
+        : row.read_unlock_status === "denied"
+          ? "rejected"
+          : "read-unlock-ok";
+    return `<span class="adm-status-pill adm-status-pill--${cls}">${App.escapeHtml(label)}</span>`;
+  }
+
+  function renderQualityFlags(row) {
+    const flags = Array.isArray(row.quality_flags) ? row.quality_flags : [];
+    if (!flags.length) return "";
+    return `
+      <div class="adm-quality-flags">
+        <h4 class="adm-detail-section-title">自動品質チェック</h4>
+        <ul class="adm-quality-flags-list">
+          ${flags
+            .map((f) => `<li>${App.escapeHtml(f.message || f.code || "要確認")}</li>`)
+            .join("")}
+        </ul>
+      </div>`;
+  }
+
   function getReviewActionFlags(row) {
     const isPending = row.status === "pending";
     const isApproved = row.status === "approved";
     const canEdit = !row._isStatic && !isPending;
+    const needsReadUnlock = !row._isStatic && row.read_unlock_status === "pending";
     return {
       showActions: isPending && !row._isStatic,
       showEditActions: canEdit,
+      showReadUnlockApprove: needsReadUnlock,
       showHide: !row._isStatic && isApproved && isReviewPublished(row),
       showUnhide: !row._isStatic && isReviewHidden(row),
       showDelete: !row._isStatic && isApproved,
@@ -446,7 +476,7 @@
       <div class="adm-review-detail">
         <div class="adm-detail-nav">
           <button type="button" class="adm-btn-ghost admin-back-btn" data-action="back-to-list">← 一覧に戻る</button>
-          <div class="adm-detail-nav-meta">${statusPill(row)} ${editedBadge}</div>
+          <div class="adm-detail-nav-meta">${statusPill(row)} ${readUnlockPill(row)} ${editedBadge}</div>
         </div>
         <div class="adm-panel adm-review-detail-panel">
           <div class="adm-panel-head">
@@ -462,6 +492,8 @@
           <div class="adm-panel-body adm-review-detail-body">
             <h4 class="adm-detail-section-title">評価</h4>
             <div class="admin-ratings">${renderRatings(row)}</div>
+
+            ${renderQualityFlags(row)}
 
             <h4 class="adm-detail-section-title">口コミ本文</h4>
             ${showEditors ? renderBodyEditors(row, { postPublish: flags.showEditActions }) : renderBodyReadOnly(row)}
@@ -526,6 +558,18 @@
                 </div>
                 <div class="admin-actions">
                   <button type="button" class="adm-btn-primary" data-action="save-review" data-id="${row.id}">変更を保存</button>
+                </div>
+              </div>`
+                : ""
+            }
+
+            ${
+              flags.showReadUnlockApprove
+                ? `
+              <div class="adm-review-actions adm-review-actions--read-unlock">
+                <p class="adm-read-unlock-note">この投稿者はまだ他の口コミ全文を閲覧できません。内容を確認し、問題なければ閲覧解除を承認してください（サイト公開とは別の操作です）。</p>
+                <div class="admin-actions">
+                  <button type="button" class="adm-btn-primary" data-action="approve-read-unlock" data-id="${row.id}">閲覧解除を承認</button>
                 </div>
               </div>`
                 : ""
@@ -610,6 +654,8 @@
       rows = [...rows, ...getStaticReviewsForAdmin()];
     } else if (tab === "pending") {
       rows = await ReviewsApi.getPendingReviews();
+    } else if (tab === "read_unlock") {
+      rows = await ReviewsApi.getReadUnlockPendingReviews();
     } else if (tab === "approved") {
       rows = (await ReviewsApi.getReviewHistory("approved")).filter((r) => isReviewPublished(r));
       rows = [...rows, ...getStaticReviewsForAdmin()];
@@ -768,6 +814,24 @@
           App.showToast("口コミを更新しました");
           invalidateKpiCache();
           await loadTab(currentTab, { preserveSelection: true });
+        } catch (err) {
+          App.showToast(err.message, "error");
+          btn.disabled = false;
+        }
+      });
+    });
+
+    root.querySelectorAll("[data-action='approve-read-unlock']").forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id = btn.dataset.id;
+        btn.disabled = true;
+        try {
+          await ReviewsApi.approveReadUnlock(id);
+          App.showToast("閲覧解除を承認しました");
+          invalidateKpiCache();
+          await loadTab(currentTab === "read_unlock" ? "read_unlock" : currentTab, {
+            preserveSelection: false,
+          });
         } catch (err) {
           App.showToast(err.message, "error");
           btn.disabled = false;

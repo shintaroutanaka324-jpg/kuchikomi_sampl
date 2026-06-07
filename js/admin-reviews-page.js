@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const initialTab = App.getQueryParam("tab") || "all";
     const initialReview = App.getQueryParam("review");
-    const validTabs = ["all", "pending", "approved", "hidden", "rejected"];
+    const validTabs = ["all", "pending", "read_unlock", "approved", "hidden", "rejected"];
 
     await AdminReviews.render(contentRoot, {
       tab: validTabs.includes(initialTab) ? initialTab : "all",
