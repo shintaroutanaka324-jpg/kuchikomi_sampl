@@ -799,7 +799,7 @@
   display: flex;
   align-items: center;
   gap: 0.35rem;
-  margin-bottom: 0.35rem;
+  margin-bottom: 0.65rem;
 }
 
 .pd2-rc-rating-row strong {
@@ -813,7 +813,37 @@
   font-weight: 700;
   color: var(--gray-900);
   line-height: 1.45;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.65rem;
+}
+
+.pd2-rc-purchase {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 0.5rem 1rem;
+  margin: 0 0 0.85rem;
+  padding: 0.65rem 0.75rem;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-100);
+  border-radius: 8px;
+}
+
+.pd2-rc-purchase div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.pd2-rc-purchase dt {
+  font-size: 0.6875rem;
+  color: var(--gray-400);
+  font-weight: 500;
+}
+
+.pd2-rc-purchase dd {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--gray-800);
 }
 
 .pd2-rc-boxes {
