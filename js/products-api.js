@@ -72,6 +72,43 @@
     return `p-${Date.now().toString(36)}`;
   }
 
+  async function uploadProductImage(file, productId) {
+    ensureConfigured();
+    if (!window.Auth.isAdmin?.()) {
+      throw new Error("管理者権限が必要です。");
+    }
+    if (!file) throw new Error("画像ファイルが選択されていません。");
+
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const allowed = ["jpg", "jpeg", "png", "webp", "gif"];
+    if (!allowed.includes(ext)) {
+      throw new Error("JPEG / PNG / WebP / GIF のみアップロードできます。");
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      throw new Error("画像は5MB以下にしてください。");
+    }
+
+    const path = `${productId}/cover.${ext === "jpeg" ? "jpg" : ext}`;
+    const client = getClient();
+    const { error } = await client.storage.from("product-images").upload(path, file, {
+      upsert: true,
+      contentType: file.type || undefined,
+    });
+
+    if (error) {
+      const msg = error.message || "";
+      if (msg.includes("product-images") || msg.includes("Bucket not found")) {
+        throw new Error(
+          "画像ストレージが未設定です。Supabase SQL Editor で supabase/schema-products-images.sql を実行してください。"
+        );
+      }
+      throw new Error(`画像のアップロードに失敗しました: ${msg}`);
+    }
+
+    const { data } = client.storage.from("product-images").getPublicUrl(path);
+    return data?.publicUrl || null;
+  }
+
   function applyProductRegistry(rows) {
     if (typeof setDbProductRegistry !== "function") return;
     setDbProductRegistry(
@@ -262,6 +299,7 @@
     updateProduct,
     setProductPublished,
     deleteProduct,
+    uploadProductImage,
     generateProductId,
     DEFAULT_IMAGE,
   };

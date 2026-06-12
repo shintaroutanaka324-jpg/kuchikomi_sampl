@@ -44,7 +44,6 @@
     { id: "ap-category", key: "category" },
     { id: "ap-price", key: "price" },
     { id: "ap-platform", key: "platform" },
-    { id: "ap-image", key: "imageUrl", optional: true },
     { id: "ap-description", key: "description" },
     { id: "ap-highlight-pro", key: "highlightPro", optional: true },
     { id: "ap-highlight-con", key: "highlightCon", optional: true },
@@ -263,8 +262,24 @@
           <input type="text" id="ap-platform" class="form-input" value="${App.escapeHtml(form.platform)}" />
         </div>
         <div class="admin-field admin-field--full">
-          <label for="ap-image">画像URL</label>
-          <input type="url" id="ap-image" class="form-input" value="${App.escapeHtml(form.imageUrl)}" />
+          <label class="form-label">サービス画像</label>
+          <div class="adm-image-upload">
+            <img
+              id="ap-image-preview"
+              class="adm-image-preview${form.imageUrl ? "" : " is-hidden"}"
+              src="${form.imageUrl ? App.escapeHtml(form.imageUrl) : ""}"
+              alt=""
+              data-current="${App.escapeHtml(form.imageUrl || "")}"
+            />
+            <label class="adm-image-upload-btn" for="ap-image-file">
+              <span class="adm-image-upload-title">画像を選択</span>
+              <span class="adm-image-upload-hint">JPEG / PNG / WebP（5MBまで）</span>
+              <span class="adm-image-upload-name" id="ap-image-name">${form.imageUrl ? "現在の画像を使用中" : "未選択"}</span>
+            </label>
+            <input type="file" id="ap-image-file" class="adm-image-input" accept="image/jpeg,image/png,image/webp,image/gif" />
+          </div>
+          <p class="form-hint">未選択の場合はサイト共通のデフォルト画像が使われます。</p>
+          <input type="hidden" id="ap-image-url" value="${App.escapeHtml(form.imageUrl || "")}" />
         </div>
         <div class="admin-field admin-field--full">
           <label for="ap-description">サービス説明</label>
@@ -335,6 +350,33 @@
     });
 
     bindFormEvents(modalRoot, cachedProducts, close);
+    bindImageUpload(modalRoot);
+  }
+
+  function bindImageUpload(root) {
+    const input = root.querySelector("#ap-image-file");
+    const preview = root.querySelector("#ap-image-preview");
+    const nameEl = root.querySelector("#ap-image-name");
+    if (!input || !preview) return;
+
+    input.addEventListener("change", () => {
+      const file = input.files?.[0];
+      if (!file) {
+        const current = preview.dataset.current || "";
+        preview.src = current;
+        preview.classList.toggle("is-hidden", !current);
+        nameEl.textContent = current ? "現在の画像を使用中" : "未選択";
+        return;
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        App.showToast("画像は5MB以下にしてください", "error");
+        input.value = "";
+        return;
+      }
+      nameEl.textContent = file.name;
+      preview.src = URL.createObjectURL(file);
+      preview.classList.remove("is-hidden");
+    });
   }
 
   function collectFormData() {
@@ -344,7 +386,7 @@
       category: document.getElementById("ap-category")?.value || "other",
       price: document.getElementById("ap-price")?.value,
       platform: document.getElementById("ap-platform")?.value.trim() || "",
-      imageUrl: document.getElementById("ap-image")?.value.trim() || "",
+      imageUrl: document.getElementById("ap-image-url")?.value.trim() || "",
       description: document.getElementById("ap-description")?.value.trim() || "",
       highlightPro: document.getElementById("ap-highlight-pro")?.value.trim() || "",
       highlightCon: document.getElementById("ap-highlight-con")?.value.trim() || "",
@@ -378,11 +420,19 @@
       }
       try {
         const api = await ensureProductsApi();
+        const imageFile = document.getElementById("ap-image-file")?.files?.[0] || null;
+        const productId =
+          editingId && !editingIsStatic ? editingId : editingId || api.generateProductId();
+
+        if (imageFile) {
+          data.imageUrl = (await api.uploadProductImage(imageFile, productId)) || data.imageUrl;
+        }
+
         if (editingId && !editingIsStatic) {
           await api.updateProduct(editingId, data);
           App.showToast("サービスを更新しました");
         } else {
-          const payload = editingId && editingIsStatic ? { ...data, id: editingId } : data;
+          const payload = editingId && editingIsStatic ? { ...data, id: editingId } : { ...data, id: productId };
           if (editingIsStatic) {
             const original = products.find((p) => p.id === editingId);
             if (original) {

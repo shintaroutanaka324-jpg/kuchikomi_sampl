@@ -907,6 +907,64 @@
   border-top: 1px solid #e5e7eb;
 }
 
+.adm-image-upload {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.adm-image-preview {
+  width: 120px;
+  height: 90px;
+  object-fit: cover;
+  border-radius: 0.5rem;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.adm-image-preview.is-hidden {
+  display: none;
+}
+
+.adm-image-upload-btn {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 220px;
+  padding: 0.85rem 1rem;
+  border: 1px dashed #d1d5db;
+  border-radius: 0.5rem;
+  background: #fafafa;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.adm-image-upload-btn:hover {
+  border-color: #10b981;
+  background: #ecfdf5;
+}
+
+.adm-image-upload-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #374151;
+}
+
+.adm-image-upload-hint,
+.adm-image-upload-name {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.adm-image-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  overflow: hidden;
+}
+
 .adm-table-row-clickable {
   cursor: pointer;
 }

@@ -203,9 +203,24 @@
 }
 
 .pd2-hero-provider {
-  font-size: 0.8125rem;
-  color: var(--gray-500);
-  margin-bottom: 0.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.5rem;
+  font-size: 0.875rem;
+  color: var(--gray-600);
+  margin: -0.15rem 0 0.65rem;
+}
+
+.pd2-hero-provider-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--gray-400);
+}
+
+.pd2-hero-provider-name {
+  font-weight: 700;
+  color: var(--gray-800);
 }
 
 .pd2-hero-desc {

@@ -69,6 +69,7 @@
       supportQuality: Number(row.support_quality),
       costPerformance: Number(row.cost_performance),
       recommendation: Number(row.recommendation),
+      sellerName: row.seller_name || "",
       _dbId: row.id,
       _fromDb: true,
     };

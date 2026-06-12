@@ -417,9 +417,9 @@ function renderConfirmScreen(data) {
           <dl class="sr-confirm-dl">
             <div><dt>サービス名</dt><dd>${App.escapeHtml(data.serviceName)}</dd></div>
             <div><dt>チャンネル・企業名</dt><dd>${App.escapeHtml(data.sellerName)}</dd></div>
-            <div><dt>返金保証</dt><dd>${App.escapeHtml(refundGuaranteeLabel(data.hasRefundGuarantee))}</dd></div>
             <div><dt>購入価格</dt><dd>${App.escapeHtml(Number(data.purchasePrice).toLocaleString())}円</dd></div>
             <div><dt>購入時期</dt><dd>${App.escapeHtml(data.purchasePeriod)}</dd></div>
+            <div><dt>返金保証</dt><dd>${App.escapeHtml(refundGuaranteeLabel(data.hasRefundGuarantee))}</dd></div>
             <div><dt>購入証明</dt><dd>${App.escapeHtml(data.purchaseProofName)}</dd></div>
           </dl>
         </div>
@@ -580,7 +580,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                   placeholder="例: ○○チャンネル / 株式会社△△ / 山田太郎" />
                 <p class="form-hint">YouTubeチャンネル名、販売会社名、講師名などを入力してください</p>
               </div>
-              ${renderRefundGuaranteeField()}
               <div class="form-group">
                 <label class="form-label" for="purchasePrice">購入価格（円） <span class="sr-required">*</span></label>
                 <input type="number" class="form-input" id="purchasePrice" required min="0" placeholder="98000" />
@@ -589,6 +588,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 <span class="form-label">購入時期 <span class="sr-required">*</span></span>
                 ${renderPurchasePeriodFields()}
               </div>
+              ${renderRefundGuaranteeField()}
               <div class="form-group sr-info-proof">
                 <label class="form-label" for="purchaseProof">購入証明</label>
                 <label class="sr-upload" for="purchaseProof">

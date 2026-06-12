@@ -75,6 +75,7 @@ SQL Editor で `supabase/schema-email-check.sql` を実行してください。
 
 1. SQL Editor で `supabase/schema-products.sql` を実行
 2. 続けて `supabase/schema-products-public-registry.sql` も実行（**非公開サービスを公開サイトから隠す場合に必須**）
+3. 続けて `supabase/schema-products-images.sql` も実行（**サービス画像のアップロードに必須**）
 
 ## 7. 口コミ投稿・審査のセットアップ
 

@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const starDist = computeStarDistribution(reviews, reviewCount, avgRating);
   const related = getRelatedProducts(product);
   const officialUrl = product.officialUrl || "#";
+  const providerName = getProductProviderName(product, reviews);
 
   document.title = `${product.title} | ${App.SITE_BRAND.nameFull}`;
 
@@ -62,34 +63,13 @@ document.addEventListener("DOMContentLoaded", async () => {
               <a href="reviews.html?genre=${product.category}" class="pd2-tag pd2-tag--link">${App.escapeHtml(getCategoryLabel(product.category))}</a>
             </div>
             <h1 class="pd2-hero-title">${App.escapeHtml(product.title)}</h1>
+            ${renderProviderLine(providerName)}
             <div class="pd2-hero-rating">
               <span class="pd2-stars pd2-stars--hero" aria-hidden="true">${renderStarsHtml(avgRating)}</span>
               <strong class="pd2-score">${avgRating.toFixed(1)}</strong>
               <span class="pd2-score-max">/ 5.0</span>
               <a href="#reviews-section" class="pd2-review-link">口コミ ${reviewCount.toLocaleString("ja-JP")}件</a>
             </div>
-            <ul class="pd2-keyinfo">
-              <li>
-                <span class="pd2-keyinfo-icon" aria-hidden="true">📺</span>
-                <span class="pd2-keyinfo-label">受講形式</span>
-                <span class="pd2-keyinfo-val">${App.escapeHtml(product.platform || "オンライン")}</span>
-              </li>
-              <li>
-                <span class="pd2-keyinfo-icon" aria-hidden="true">📅</span>
-                <span class="pd2-keyinfo-label">サポート期間</span>
-                <span class="pd2-keyinfo-val">${App.escapeHtml(product.supportPeriod || "3〜6ヶ月")}</span>
-              </li>
-              <li>
-                <span class="pd2-keyinfo-icon" aria-hidden="true">💴</span>
-                <span class="pd2-keyinfo-label">料金</span>
-                <span class="pd2-keyinfo-val">${formatPrice(product.price)}</span>
-              </li>
-              <li>
-                <span class="pd2-keyinfo-icon" aria-hidden="true">↩</span>
-                <span class="pd2-keyinfo-label">返金保証</span>
-                <span class="pd2-keyinfo-val">${App.escapeHtml(product.refundPolicy || "なし")}</span>
-              </li>
-            </ul>
           </div>
           <aside class="pd2-hero-actions">
             <button type="button" class="pd2-fav-btn" id="pd2-fav-btn" aria-pressed="false"><span aria-hidden="true">♡</span> お気に入り</button>
@@ -236,6 +216,29 @@ function renderStarBarRow({ star, pct }) {
     </div>`;
 }
 
+function getProductProviderName(product, reviews = []) {
+  const instructor = String(product?.instructor || "").trim();
+  if (instructor) return instructor;
+
+  const counts = new Map();
+  reviews.forEach((review) => {
+    const name = String(review.sellerName || review.seller_name || "").trim();
+    if (!name) return;
+    counts.set(name, (counts.get(name) || 0) + 1);
+  });
+  if (!counts.size) return "";
+  return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+}
+
+function renderProviderLine(name) {
+  if (!name) return "";
+  return `
+    <p class="pd2-hero-provider">
+      <span class="pd2-hero-provider-label">販売・提供</span>
+      <span class="pd2-hero-provider-name">${App.escapeHtml(name)}</span>
+    </p>`;
+}
+
 function renderBasicInfoCard(product) {
   return `
     <div class="pd2-side-card">
@@ -244,7 +247,7 @@ function renderBasicInfoCard(product) {
         <div><dt>カテゴリ</dt><dd>${App.escapeHtml(getCategoryLabel(product.category))}</dd></div>
         <div><dt>受講形式</dt><dd>${App.escapeHtml(product.platform || "オンライン")}</dd></div>
         <div><dt>料金</dt><dd>${formatPrice(product.price)}</dd></div>
-        <div><dt>運営</dt><dd>${App.escapeHtml(product.instructor)}</dd></div>
+        <div><dt>販売・提供</dt><dd>${App.escapeHtml(getProductProviderName(product, getReviewsByProductId(product.id)) || "—")}</dd></div>
         <div><dt>サポート期間</dt><dd>${App.escapeHtml(product.supportPeriod || "3〜6ヶ月")}</dd></div>
       </dl>
     </div>`;
