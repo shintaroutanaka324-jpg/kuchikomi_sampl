@@ -70,6 +70,9 @@
       costPerformance: Number(row.cost_performance),
       recommendation: Number(row.recommendation),
       sellerName: row.seller_name || "",
+      hasRefundGuarantee: row.has_refund_guarantee || "",
+      purchaseYear: row.purchase_year || null,
+      purchaseMonth: row.purchase_month || null,
       _dbId: row.id,
       _fromDb: true,
     };

@@ -34,6 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const starDist = computeStarDistribution(reviews, reviewCount, avgRating);
   const related = getRelatedProducts(product);
   const officialUrl = product.officialUrl || "#";
+  const insights = aggregateReviewInsights(reviews);
   const providerName = getProductProviderName(product, reviews);
 
   document.title = `${product.title} | ${App.SITE_BRAND.nameFull}`;
@@ -70,6 +71,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <span class="pd2-score-max">/ 5.0</span>
               <a href="#reviews-section" class="pd2-review-link">口コミ ${reviewCount.toLocaleString("ja-JP")}件</a>
             </div>
+            ${renderReviewInsightsRow(insights)}
           </div>
           <aside class="pd2-hero-actions">
             <button type="button" class="pd2-fav-btn" id="pd2-fav-btn" aria-pressed="false"><span aria-hidden="true">♡</span> お気に入り</button>
@@ -133,7 +135,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             </ul>
             ${!unlocked ? renderEvalUnlockNote() : ""}
           </div>
-          ${renderBasicInfoCard(product)}
+          ${renderBasicInfoCard(product, insights)}
           <button type="button" class="pd2-report">不適切な口コミを通報する</button>
         </aside>
       </div>
@@ -216,40 +218,134 @@ function renderStarBarRow({ star, pct }) {
     </div>`;
 }
 
-function getProductProviderName(product, reviews = []) {
-  const instructor = String(product?.instructor || "").trim();
-  if (instructor) return instructor;
-
+function getTopReviewValue(reviews, getter) {
   const counts = new Map();
   reviews.forEach((review) => {
-    const name = String(review.sellerName || review.seller_name || "").trim();
-    if (!name) return;
-    counts.set(name, (counts.get(name) || 0) + 1);
+    const value = String(getter(review) || "").trim();
+    if (!value) return;
+    counts.set(value, (counts.get(value) || 0) + 1);
   });
   if (!counts.size) return "";
   return [...counts.entries()].sort((a, b) => b[1] - a[1])[0][0];
+}
+
+function aggregateReviewInsights(reviews) {
+  const prices = reviews
+    .map((r) => Number(r.purchasePrice))
+    .filter((p) => Number.isFinite(p) && p > 0)
+    .sort((a, b) => a - b);
+
+  let priceLabel = null;
+  if (prices.length === 1) {
+    priceLabel = formatPrice(prices[0]);
+  } else if (prices.length > 1) {
+    const min = prices[0];
+    const max = prices[prices.length - 1];
+    priceLabel = min === max ? formatPrice(min) : `${formatPrice(min)}〜${formatPrice(max)}`;
+  }
+
+  const sellerName = getTopReviewValue(reviews, (r) => r.sellerName || r.seller_name);
+
+  const refundCounts = { yes: 0, no: 0, unknown: 0 };
+  reviews.forEach((r) => {
+    const v = r.hasRefundGuarantee || r.has_refund_guarantee || "";
+    if (refundCounts[v] !== undefined) refundCounts[v]++;
+  });
+  const refundTotal = refundCounts.yes + refundCounts.no + refundCounts.unknown;
+  let refundLabel = null;
+  if (refundTotal) {
+    const parts = [];
+    if (refundCounts.yes) parts.push(`返金保証あり ${refundCounts.yes}件`);
+    if (refundCounts.no) parts.push(`なし ${refundCounts.no}件`);
+    if (refundCounts.unknown) parts.push(`不明 ${refundCounts.unknown}件`);
+    refundLabel = parts.join(" / ");
+  }
+
+  const periods = reviews
+    .filter((r) => r.purchaseYear)
+    .map((r) => {
+      const y = Number(r.purchaseYear);
+      const m = Number(r.purchaseMonth) || 0;
+      return y * 100 + m;
+    })
+    .filter((p) => p > 0)
+    .sort((a, b) => a - b);
+
+  let purchasePeriodLabel = null;
+  if (periods.length) {
+    const fmt = (ym) => {
+      const y = Math.floor(ym / 100);
+      const m = ym % 100;
+      return m > 0 ? `${y}年${m}月` : `${y}年`;
+    };
+    const min = periods[0];
+    const max = periods[periods.length - 1];
+    purchasePeriodLabel = min === max ? fmt(min) : `${fmt(min)}〜${fmt(max)}`;
+  }
+
+  const hasData = Boolean(sellerName || priceLabel || refundLabel || purchasePeriodLabel);
+
+  return { sellerName, priceLabel, refundLabel, purchasePeriodLabel, hasData, reviewCount: reviews.length };
+}
+
+function getProductProviderName(product, reviews = []) {
+  const fromReviews = getTopReviewValue(reviews, (r) => r.sellerName || r.seller_name);
+  if (fromReviews) return fromReviews;
+  return String(product?.instructor || "").trim();
 }
 
 function renderProviderLine(name) {
   if (!name) return "";
   return `
     <p class="pd2-hero-provider">
-      <span class="pd2-hero-provider-label">販売・提供</span>
+      <span class="pd2-hero-provider-label">チャンネル・企業名</span>
       <span class="pd2-hero-provider-name">${App.escapeHtml(name)}</span>
     </p>`;
 }
 
-function renderBasicInfoCard(product) {
+function renderReviewInsightsRow(insights) {
+  if (!insights.hasData) return "";
+  const items = [];
+  if (insights.priceLabel) items.push({ icon: "💴", label: "購入価格", val: insights.priceLabel });
+  if (insights.purchasePeriodLabel) items.push({ icon: "📅", label: "購入時期", val: insights.purchasePeriodLabel });
+  if (insights.refundLabel) items.push({ icon: "↩", label: "返金保証", val: insights.refundLabel });
+  if (!items.length) return "";
+  return `
+    <ul class="pd2-keyinfo">
+      ${items
+        .map(
+          (item) => `
+        <li>
+          <span class="pd2-keyinfo-icon" aria-hidden="true">${item.icon}</span>
+          <span class="pd2-keyinfo-label">${App.escapeHtml(item.label)}</span>
+          <span class="pd2-keyinfo-val">${App.escapeHtml(item.val)}</span>
+        </li>`
+        )
+        .join("")}
+    </ul>`;
+}
+
+function renderBasicInfoCard(product, insights) {
+  const emptyNote =
+    insights.reviewCount === 0
+      ? '<p class="pd2-info-empty">口コミが投稿されると、購入者が入力した情報がここに表示されます。</p>'
+      : "";
+  const dataNote = insights.hasData
+    ? '<p class="pd2-info-note">口コミ投稿者が入力した情報を集計しています</p>'
+    : "";
+
   return `
     <div class="pd2-side-card">
-      <h2 class="pd2-side-title">基本情報</h2>
+      <h2 class="pd2-side-title">口コミからわかる情報</h2>
+      ${emptyNote}
       <dl class="pd2-info-table">
         <div><dt>カテゴリ</dt><dd>${App.escapeHtml(getCategoryLabel(product.category))}</dd></div>
-        <div><dt>受講形式</dt><dd>${App.escapeHtml(product.platform || "オンライン")}</dd></div>
-        <div><dt>料金</dt><dd>${formatPrice(product.price)}</dd></div>
-        <div><dt>販売・提供</dt><dd>${App.escapeHtml(getProductProviderName(product, getReviewsByProductId(product.id)) || "—")}</dd></div>
-        <div><dt>サポート期間</dt><dd>${App.escapeHtml(product.supportPeriod || "3〜6ヶ月")}</dd></div>
+        <div><dt>チャンネル・企業名</dt><dd>${App.escapeHtml(insights.sellerName || "—")}</dd></div>
+        <div><dt>購入価格</dt><dd>${App.escapeHtml(insights.priceLabel || "—")}</dd></div>
+        <div><dt>購入時期</dt><dd>${App.escapeHtml(insights.purchasePeriodLabel || "—")}</dd></div>
+        <div><dt>返金保証</dt><dd>${App.escapeHtml(insights.refundLabel || "—")}</dd></div>
       </dl>
+      ${dataNote}
     </div>`;
 }
 

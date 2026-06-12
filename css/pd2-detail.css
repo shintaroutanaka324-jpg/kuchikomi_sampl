@@ -196,6 +196,19 @@
   color: var(--gray-400);
 }
 
+.pd2-info-empty {
+  font-size: 0.8125rem;
+  color: var(--gray-500);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.pd2-info-note {
+  font-size: 0.6875rem;
+  color: var(--gray-400);
+  margin: 0.75rem 0 0;
+}
+
 .pd2-keyinfo-val {
   font-size: 0.8125rem;
   font-weight: 600;
