@@ -80,8 +80,8 @@ Checkout の成功・キャンセル URL（コード内で自動設定）:
 
 | 種別 | URL |
 |------|-----|
-| 成功 | `https://shintaroutanaka324-jpg.github.io/kaumae/?payment=success` |
-| キャンセル | `https://shintaroutanaka324-jpg.github.io/kaumae/?payment=cancel` |
+| 成功 | `https://www.kaumae-info.com/?payment=success` |
+| キャンセル | `https://www.kaumae-info.com/?payment=cancel` |
 
 ---
 

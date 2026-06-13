@@ -22,11 +22,35 @@
 window.SUPABASE_CONFIG = {
   url: "https://xxxxxxxx.supabase.co",
   anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  siteBasePath: "/kaumae/",
+  siteBasePath: "/",
 };
 ```
 
 > anon key はフロントエンドに公開されるキーです。Row Level Security で保護されています。
+
+## 3b. 独自ドメイン（kaumae-info.com）
+
+本番 URL は **https://www.kaumae-info.com/** です。ルート（`kaumae-info.com`）も DNS 設定で同じサイトに向けます。
+
+### お名前.com の DNS 設定
+
+| 種類 | ホスト名 | 値 |
+|------|----------|-----|
+| CNAME | `www` | `shintaroutanaka324-jpg.github.io` |
+| A | `@`（空） | `185.199.108.153` |
+| A | `@` | `185.199.109.153` |
+| A | `@` | `185.199.110.153` |
+| A | `@` | `185.199.111.153` |
+
+反映まで数時間かかることがあります。
+
+### GitHub Pages
+
+1. リポジトリ **Settings → Pages → Custom domain** に `www.kaumae-info.com` を入力
+2. DNS 確認後 **Enforce HTTPS** を ON
+3. リポジトリ直下の `CNAME` ファイル（`www.kaumae-info.com`）がデプロイされていることを確認
+
+GitHub が apex（`kaumae-info.com`）から www へのリダイレクトを自動設定します。
 
 ## 4. 認証設定（推奨）
 
@@ -44,15 +68,19 @@ Dashboard → **Authentication** → **URL Configuration**
 **Site URL**（末尾スラッシュ付き・`/index` は付けない）:
 
 ```
-https://shintaroutanaka324-jpg.github.io/kaumae/
+https://www.kaumae-info.com/
 ```
 
 **Redirect URLs** に以下をすべて追加:
 
 ```
+https://www.kaumae-info.com/**
+https://www.kaumae-info.com/auth-callback.html
+https://www.kaumae-info.com/reset-password.html
+https://kaumae-info.com/**
+https://kaumae-info.com/auth-callback.html
+https://kaumae-info.com/reset-password.html
 https://shintaroutanaka324-jpg.github.io/kaumae/**
-https://shintaroutanaka324-jpg.github.io/kaumae/auth-callback.html
-https://shintaroutanaka324-jpg.github.io/kaumae/reset-password.html
 ```
 
 ローカル開発時は例:

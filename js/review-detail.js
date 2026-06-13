@@ -62,8 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               <span class="pd2-tag">オンライン講座</span>
               <a href="reviews.html?genre=${product.category}" class="pd2-tag pd2-tag--link">${App.escapeHtml(getCategoryLabel(product.category))}</a>
             </div>
-            <h1 class="pd2-hero-title">${App.escapeHtml(product.title)}</h1>
-            ${renderProviderLine(providerName)}
+            ${renderHeroIdentity(product.title, providerName)}
             <div class="pd2-hero-rating">
               <span class="pd2-stars pd2-stars--hero" aria-hidden="true">${renderStarsHtml(avgRating)}</span>
               <strong class="pd2-score">${avgRating.toFixed(1)}</strong>
@@ -233,13 +232,18 @@ function getProductProviderName(product, reviews = []) {
   return String(product?.instructor || "").trim();
 }
 
-function renderProviderLine(name) {
-  if (!name) return "";
+function renderHeroIdentity(serviceName, providerName) {
   return `
-    <p class="pd2-hero-provider">
-      <span class="pd2-hero-provider-label">チャンネル・企業名</span>
-      <span class="pd2-hero-provider-name">${App.escapeHtml(name)}</span>
-    </p>`;
+    <div class="pd2-hero-identity">
+      <div class="pd2-hero-identity-block">
+        <span class="pd2-hero-identity-label">サービス名</span>
+        <h1 class="pd2-hero-identity-name">${App.escapeHtml(serviceName)}</h1>
+      </div>
+      <div class="pd2-hero-identity-block">
+        <span class="pd2-hero-identity-label">チャンネル・企業名</span>
+        <p class="pd2-hero-identity-name">${App.escapeHtml(providerName || "—")}</p>
+      </div>
+    </div>`;
 }
 
 function renderBasicInfoCard(product) {
@@ -275,7 +279,7 @@ function formatReviewPurchasePrice(review) {
   return formatPrice(price);
 }
 
-function renderReviewPurchaseMeta(review) {
+function renderReviewPurchaseCards(review) {
   const price = formatReviewPurchasePrice(review);
   const period = formatReviewPurchasePeriod(review);
   const refundValue = review.hasRefundGuarantee || review.has_refund_guarantee || "";
@@ -283,12 +287,39 @@ function renderReviewPurchaseMeta(review) {
 
   if (!price && !period && !refund) return "";
 
-  return `
-    <dl class="pd2-rc-purchase">
-      ${price ? `<div><dt>購入価格</dt><dd>${App.escapeHtml(price)}</dd></div>` : ""}
-      ${period ? `<div><dt>購入時期</dt><dd>${App.escapeHtml(period)}</dd></div>` : ""}
-      ${refund ? `<div><dt>返金保証</dt><dd>${App.escapeHtml(refund)}</dd></div>` : ""}
-    </dl>`;
+  const cards = [];
+  if (price) {
+    cards.push(`
+      <div class="pd2-rc-fact">
+        <span class="pd2-rc-fact-icon" aria-hidden="true">${RC_ICONS.price}</span>
+        <div>
+          <span class="pd2-rc-fact-label">購入価格</span>
+          <span class="pd2-rc-fact-value">${App.escapeHtml(price)}</span>
+        </div>
+      </div>`);
+  }
+  if (period) {
+    cards.push(`
+      <div class="pd2-rc-fact">
+        <span class="pd2-rc-fact-icon" aria-hidden="true">${RC_ICONS.calendar}</span>
+        <div>
+          <span class="pd2-rc-fact-label">購入時期</span>
+          <span class="pd2-rc-fact-value">${App.escapeHtml(period)}</span>
+        </div>
+      </div>`);
+  }
+  if (refund) {
+    cards.push(`
+      <div class="pd2-rc-fact">
+        <span class="pd2-rc-fact-icon" aria-hidden="true">${RC_ICONS.shield}</span>
+        <div>
+          <span class="pd2-rc-fact-label">返金保証</span>
+          <span class="pd2-rc-fact-value">${App.escapeHtml(refund)}</span>
+        </div>
+      </div>`);
+  }
+
+  return `<div class="pd2-rc-facts">${cards.join("")}</div>`;
 }
 
 function getRelatedProducts(product) {
@@ -451,104 +482,169 @@ function getRecommendForText(r) {
   return "購入前に十分比較検討したい人";
 }
 
-function getOtherText(r) {
-  return r.bodyOther || "";
+const RC_ICONS = {
+  price:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>',
+  calendar:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  shield:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>',
+  pro:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M7 11v8a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-8"/><path d="M12 15V3"/><path d="M8 7l4-4 4 4"/></svg>',
+  con:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  learn:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  recommend:
+    '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>',
+  arrow:
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>',
+};
+
+function getReviewHeadline(r) {
+  const title = String(r.title || "").trim();
+  if (title) return title;
+  const after = getAfterChangeText(r);
+  const chars = [...after];
+  if (chars.length > 5) return chars.slice(0, 42).join("") + (chars.length > 42 ? "…" : "");
+  return "購入者の体験談";
 }
 
-function renderTagBlock(type, label, text, unlocked, { showCta = false } = {}) {
-  const raw = text || "（記載なし）";
-  const inner = App.escapeHtml(raw);
+function getLearnedDetailText(r) {
+  return String(r.content || "").trim();
+}
 
+function renderLockableContent(text, unlocked, { showCta = false, className = "pd2-rc-text" } = {}) {
+  const raw = text || "（記載なし）";
   if (unlocked) {
-    return `
-      <div class="pd2-rc-box pd2-rc-box--${type}">
-        <h4 class="pd2-rc-box-title">${label}</h4>
-        <p class="pd2-rc-box-text">${inner}</p>
-      </div>`;
+    return `<p class="${className}">${App.escapeHtml(raw)}</p>`;
   }
 
   const preview = App.escapeHtml(truncatePreview(raw));
   const locked = hasMoreThanPreview(raw);
-
   if (!locked) {
-    return `
-      <div class="pd2-rc-box pd2-rc-box--${type}">
-        <h4 class="pd2-rc-box-title">${label}</h4>
-        <p class="pd2-rc-box-text">${preview}</p>
-      </div>`;
+    return `<p class="${className}">${preview}</p>`;
   }
 
   return `
-    <div class="pd2-rc-box pd2-rc-box--${type} pd2-rc-box--locked">
-      <h4 class="pd2-rc-box-title">${label}</h4>
-      <div class="pd2-paywall">
-        <p class="pd2-paywall-preview">${preview}</p>
-        <div class="pd2-paywall-locked">
-          ${renderLockedFiller()}
-          ${renderPaywallCta(showCta)}
+    <div class="pd2-paywall">
+      <p class="pd2-paywall-preview">${preview}</p>
+      <div class="pd2-paywall-locked">
+        ${renderLockedFiller()}
+        ${renderPaywallCta(showCta)}
+      </div>
+    </div>`;
+}
+
+function renderStoryBlock(beforeText, afterText, unlocked, showAfterCta) {
+  return `
+    <div class="pd2-rc-story">
+      <p class="pd2-rc-story-heading">受講前から受講後の変化</p>
+      <div class="pd2-rc-story-grid">
+        <div class="pd2-rc-story-panel pd2-rc-story-panel--before">
+          <span class="pd2-rc-story-tag">BEFORE</span>
+          <h4 class="pd2-rc-story-label">受講前・利用前の状態</h4>
+          ${renderLockableContent(beforeText || "（記載なし）", unlocked, {
+            className: "pd2-rc-story-text",
+          })}
+        </div>
+        <div class="pd2-rc-story-arrow" aria-hidden="true">${RC_ICONS.arrow}</div>
+        <div class="pd2-rc-story-panel pd2-rc-story-panel--after">
+          <span class="pd2-rc-story-tag">AFTER</span>
+          <h4 class="pd2-rc-story-label">受講後・利用後の変化</h4>
+          ${renderLockableContent(afterText, unlocked, {
+            showCta: showAfterCta,
+            className: "pd2-rc-story-text",
+          })}
         </div>
       </div>
     </div>`;
 }
 
-function getAvatarClass(r) {
-  const n = (r.id.charCodeAt(1) || 0) + (r.userName?.length || 0);
-  return n % 2 === 0 ? "pd2-rc-avatar--blue" : "pd2-rc-avatar--rose";
+function renderDetailRow(type, label, icon, text, unlocked, showCta) {
+  return `
+    <section class="pd2-rc-detail pd2-rc-detail--${type}">
+      <div class="pd2-rc-detail-head">
+        <span class="pd2-rc-detail-icon pd2-rc-detail-icon--${type}" aria-hidden="true">${icon}</span>
+        <h4 class="pd2-rc-detail-title">${label}</h4>
+      </div>
+      <div class="pd2-rc-detail-body">
+        ${renderLockableContent(text, unlocked, { showCta, className: "pd2-rc-detail-text" })}
+      </div>
+    </section>`;
 }
 
 function renderReviewCard(r, unlocked) {
   const profile = getUserProfile(r);
   const proText = (r.pros || []).join("。") || "—";
   const conText = (r.cons || []).join("。") || "—";
+  const beforeText = getBeforeText(r);
+  const afterText = getAfterChangeText(r);
+  const learnText = getLearnedDetailText(r);
+  const recommendText = getRecommendForText(r);
   const helpfulBase = 3 + (r.id.length % 12);
-  const bodyBlocks = [
-    { type: "pro", label: "良かった点・満足した点", text: proText },
-    { type: "con", label: "気になった点", text: conText },
-    ...(getBeforeText(r)
-      ? [{ type: "before", label: "受講前・利用前の状態", text: getBeforeText(r) }]
-      : []),
-    { type: "learn", label: "受講後・利用後の変化", text: getAfterChangeText(r) },
-    { type: "recommend", label: "どんな人におすすめしたいか", text: getRecommendForText(r) },
-    ...(getOtherText(r) ? [{ type: "other", label: "その他", text: getOtherText(r) }] : []),
-  ];
   let ctaShown = false;
 
-  const boxesHtml = bodyBlocks
-    .map((block) => {
-      const showCta = !unlocked && !ctaShown && hasMoreThanPreview(block.text);
-      if (showCta) ctaShown = true;
-      return renderTagBlock(block.type, block.label, block.text, unlocked, { showCta });
-    })
+  const detailRows = [
+    { type: "pro", label: "良かった点・満足した点", icon: RC_ICONS.pro, text: proText },
+    { type: "con", label: "気になった点", icon: RC_ICONS.con, text: conText },
+    ...(learnText
+      ? [{ type: "learn", label: "学んだこと", icon: RC_ICONS.learn, text: learnText }]
+      : []),
+    {
+      type: "recommend",
+      label: "どんな人におすすめしたいか",
+      icon: RC_ICONS.recommend,
+      text: recommendText,
+    },
+  ];
+
+  const assignCta = (text) => {
+    if (unlocked || ctaShown || !hasMoreThanPreview(text)) return false;
+    ctaShown = true;
+    return true;
+  };
+
+  const showStoryCta = assignCta(afterText);
+
+  const detailsHtml = detailRows
+    .map((row) => renderDetailRow(row.type, row.label, row.icon, row.text, unlocked, assignCta(row.text)))
     .join("");
 
   return `
     <article class="pd2-rc${unlocked ? "" : " pd2-rc--locked"}" data-rating="${r.rating}" data-date="${r.date}" data-helpful="${helpfulBase}" id="review-${App.escapeHtml(r.id)}">
-      <aside class="pd2-rc-side">
-        <span class="pd2-rc-avatar ${getAvatarClass(r)}" aria-hidden="true">👤</span>
-        <p class="pd2-rc-demo">${App.escapeHtml(profile.age)}・${App.escapeHtml(profile.gender)}</p>
-        ${r.verifiedPurchase ? '<span class="pd2-rc-badge">購入証明済み</span>' : ""}
-        <time class="pd2-rc-date" datetime="${r.date}">${formatDateJa(r.date)}</time>
-      </aside>
-      <div class="pd2-rc-main">
+      <header class="pd2-rc-head">
         <div class="pd2-rc-rating-row">
-          <span class="pd2-stars" aria-hidden="true">${renderStarsHtml(r.rating)}</span>
+          <span class="pd2-stars pd2-stars--rc" aria-hidden="true">${renderStarsHtml(r.rating)}</span>
           ${
             unlocked
-              ? `<strong>${r.rating.toFixed(1)}</strong>`
+              ? `<strong class="pd2-rc-score">${r.rating.toFixed(1)}</strong>`
               : `<span class="pd2-rating-mask" aria-label="詳細スコアは非公開">—</span>`
           }
         </div>
-        ${renderReviewPurchaseMeta(r)}
-        <div class="pd2-rc-boxes">
-          ${boxesHtml}
+        <h3 class="pd2-rc-headline">${App.escapeHtml(getReviewHeadline(r))}</h3>
+        <div class="pd2-rc-meta">
+          <span class="pd2-rc-avatar" aria-hidden="true">👤</span>
+          <span class="pd2-rc-demo">${App.escapeHtml(profile.age)}・${App.escapeHtml(profile.gender)}</span>
+          ${r.verifiedPurchase ? '<span class="pd2-rc-badge">購入証明済み</span>' : ""}
+          <time class="pd2-rc-date" datetime="${r.date}">${formatDateJa(r.date)}</time>
         </div>
-        <div class="pd2-rc-foot">
-          <button type="button" class="pd2-helpful" data-review-id="${App.escapeHtml(r.id)}" data-base="${helpfulBase}">
-            <span aria-hidden="true">👍</span> 参考になった <span class="pd2-helpful-n">${helpfulBase}</span>
-          </button>
-          <button type="button" class="pd2-rc-report">🚩 不適切な内容を報告</button>
-        </div>
+      </header>
+
+      ${renderReviewPurchaseCards(r)}
+
+      ${renderStoryBlock(beforeText, afterText, unlocked, showStoryCta)}
+
+      <div class="pd2-rc-details">
+        ${detailsHtml}
       </div>
+
+      <footer class="pd2-rc-foot">
+        <button type="button" class="pd2-helpful" data-review-id="${App.escapeHtml(r.id)}" data-base="${helpfulBase}">
+          <span aria-hidden="true">♡</span> 参考になった <span class="pd2-helpful-n">${helpfulBase}</span>
+        </button>
+        <button type="button" class="pd2-rc-report">不適切な内容を報告</button>
+      </footer>
     </article>`;
 }
 

@@ -12,8 +12,8 @@ window.SUPABASE_CONFIG = {
   url: "https://pzqkfknrzvrqrfdemetq.supabase.co",
   anonKey: "sb_publishable_MLj2s3NRvUAqis--XvQenQ_YAjys8j_",
   // GitHub Pages のプロジェクトサイト用（末尾スラッシュ付き）
-  // 本番: https://shintaroutanaka324-jpg.github.io/kaumae/
-  siteBasePath: "/kaumae/",
+  // 本番: https://www.kaumae-info.com/ （ルート kaumae-info.com も DNS で同一サイト）
+  siteBasePath: "/",
   // Stripe Edge Functions 未デプロイ時は false にするとUIのみ確認可能
   billingEnabled: true,
 };

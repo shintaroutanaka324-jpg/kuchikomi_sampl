@@ -61,7 +61,7 @@ serve(async (req) => {
     }
 
     const body = await req.json().catch(() => ({}));
-    const siteUrl = (body.siteUrl as string) || "https://shintaroutanaka324-jpg.github.io/kaumae/";
+    const siteUrl = (body.siteUrl as string) || "https://www.kaumae-info.com/";
     const base = siteUrl.endsWith("/") ? siteUrl : `${siteUrl}/`;
     const successUrl = (body.successUrl as string) || `${base}?payment=success`;
     const cancelUrl = (body.cancelUrl as string) || `${base}?payment=cancel`;
